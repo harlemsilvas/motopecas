@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.local
+/uploads/*
+!.gitkeep
+frontend/node_modules
+backend/node_modules
+backend-gpt/node_modules
+backend-gpt/*
+dist/
+build/
+.DS_Store
+*.log
+# python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.vscode/
