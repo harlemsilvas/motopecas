@@ -75,7 +75,7 @@ export default function Destaques({ produtos = [] }) {
                       onClick={() => adicionarItem(produto)}
                       className="block w-full py-2.5 sm:py-3 bg-transparent border-2 border-primary text-primary text-sm sm:text-base font-bold rounded text-center transition-all duration-300 hover:bg-primary hover:text-white"
                     >
-                      COMPRAR AGORA
+                      ADICIONAR A LISTA
                     </button>
                     <a
                       href={`https://wa.me/${whatsapp}?text=Quero saber sobre ${encodeURIComponent(produto.nome)}`}
