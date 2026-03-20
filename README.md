@@ -1,130 +1,130 @@
-# 🛵 MotoPeças - Loja de Peças para Motos
+# MotoSpeed - Loja de Pecas para Motos
 
-Landing page responsiva para venda de peças de motos com entrega local.
+Landing page responsiva para venda de pecas de motos com entrega local.
 
-## 🚀 Tecnologias
+## Tecnologias
 
-- **Frontend**: React + Tailwind CSS
-- **Backend**: Node.js + Express + MongoDB
-- **Segurança**: Helmet (CSP headers)
-- **Comunicação**: API REST
+- **Frontend**: React 18 + Vite 8 + Tailwind CSS 3.4
+- **Backend**: Node.js + Express 4 + MongoDB (Mongoose 7)
+- **Seguranca**: Helmet (CSP + CORP headers)
+- **Comunicacao**: API REST
 - **Pedidos**: Via WhatsApp
+- **Hospedagem**: Hostinger VPS (deploy via GitHub)
 
-## 🔧 Funcionalidades
+## Funcionalidades
 
-- Itens do Dia (promoções)
-- Categorias dinâmicas
-- Carrinho sem login
+- Itens do Dia (promocoes com badge)
+- Categorias dinamicas com toggle ativa/oculta
+- Carrinho sem login (contexto React)
 - Finalizar pedido pelo WhatsApp
-- Painel Admin para gestão de produtos e categorias
+- Painel Admin completo (produtos, categorias, configuracoes)
+- Header e Footer configuraveis via admin
+- Randomizacao de produtos por sessao do visitante
+- Upload de imagens com subpastas organizadas
 
-## 📦 Como rodar
+## Estrutura do Projeto
 
-1. **Backend**
+```
+motopecas-loja/
+├── backend/                   # API Node.js + Express
+│   ├── server.js              # Servidor (Helmet, Multer, rotas)
+│   ├── .env                   # Variaveis de ambiente (NAO commitado)
+│   ├── controllers/
+│   │   ├── produtoController.js
+│   │   ├── categoriaController.js
+│   │   └── configController.js
+│   ├── routes/
+│   │   ├── produtos.js
+│   │   ├── categorias.js
+│   │   └── config.js
+│   ├── models/
+│   │   ├── Produto.js         # nome, preco, imagens[], categorias[], itemDoDia
+│   │   ├── Categoria.js       # nome, descricao, imagem, ordem, ativa
+│   │   └── SiteConfig.js      # header, footer, display (singleton)
+│   ├── admin/                 # Painel admin (vanilla JS SPA)
+│   │   ├── index.html
+│   │   └── components/
+│   │       ├── menu.js
+│   │       ├── produtos.js
+│   │       ├── categorias.js
+│   │       ├── itemDoDia.js
+│   │       └── configuracoes.js
+│   └── uploads/               # Imagens (nao commitado)
+│       ├── produtos/{id}/
+│       └── categorias/{id}/
+├── frontend/                  # React + Vite
+│   ├── src/
+│   │   ├── pages/Home.jsx
+│   │   ├── components/
+│   │   │   ├── Hero.jsx       # Dinamico via /api/config
+│   │   │   ├── Footer.jsx     # Dinamico via /api/config
+│   │   │   ├── Categorias.jsx # Filtra ?ativas=true
+│   │   │   ├── Destaques.jsx
+│   │   │   └── Carrinho.jsx
+│   │   ├── context/CarrinhoContext.jsx
+│   │   └── utils/imageUtils.js
+│   └── vite.config.js
+└── .gitignore
+```
 
-   ```bash
-   cd backend
-   npm install
-   npm start
-   ```
+## Desenvolvimento Local
 
-2. **Frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
+### 1. Backend
 
-> MongoDB deve estar rodando localmente ou use MongoDB Atlas.
+```bash
+cd backend
+npm install
+# Criar backend/.env com DATABASE_URL e PORT=5000
+npm run dev            # nodemon na porta 5000
+```
 
-## ⚙️ Variáveis de Ambiente
+### 2. Frontend
 
-Crie um arquivo `backend/.env`:
+```bash
+cd frontend
+npm install
+npm run dev            # Vite na porta 5173 (proxy -> 5000)
+```
+
+## Variaveis de Ambiente
+
+### Backend (`backend/.env`)
 
 ```env
-DATABASE_URL=mongodb://localhost:27017/motopecas
+DATABASE_URL=mongodb+srv://usuario:senha@cluster.mongodb.net/motopecas
 PORT=5000
 ```
 
-> Em produção, altere `VITE_API_URL` no frontend para o domínio da API.
+### Frontend (producao)
+
+No build de producao, se a API estiver em dominio diferente do frontend:
+
+```env
+VITE_API_URL=https://api.seudominio.com
+```
+
+> Em desenvolvimento, o proxy do Vite envia `/api` e `/uploads` para `localhost:5000` automaticamente.
 
 ---
 
-## 🔐 Painel Admin
+## Painel Admin
 
-### Acesso
+Acesso: `http://localhost:5000/admin`
 
-O painel administrativo é acessado pelo navegador em:
+| Secao             | Descricao                                                        |
+| ----------------- | ---------------------------------------------------------------- |
+| **Produtos**      | CRUD com upload de ate 10 imagens, preco promocional             |
+| **Categorias**    | CRUD com imagem, ordem, toggle ativa/oculta                      |
+| **Itens do Dia**  | Marcar/desmarcar produtos como destaque                          |
+| **Configuracoes** | Header (titulo, slogan, bg), Footer (contato, horarios), Display |
 
-```
-http://localhost:5000/admin
-```
+---
 
-> **Nota:** O admin é servido como arquivo estático pelo backend. Não há sistema de login implementado — o acesso é aberto. Em produção, recomenda-se proteger a rota `/admin` com autenticação (ex: middleware de senha, JWT ou proxy reverso com senha).
+## Endpoints da API
 
-### Funcionalidades do Admin
+### Produtos (`/api/produtos`)
 
-#### 📦 Produtos (`/admin` — tela principal)
-
-| Ação            | Descrição                                                                                |
-| --------------- | ---------------------------------------------------------------------------------------- |
-| **Cadastrar**   | Formulário com nome, preço, preço promocional, descrição, categorias e upload de imagens |
-| **Listar**      | Tabela com todos os produtos cadastrados                                                 |
-| **Editar**      | Clique em "Editar" na tabela para preencher o formulário com os dados do produto         |
-| **Excluir**     | Clique em "Excluir" na tabela (com confirmação)                                          |
-| **Item do Dia** | Checkbox para marcar/desmarcar produto como destaque                                     |
-
-#### 🖼️ Upload de Imagens
-
-- Até **10 imagens** por produto
-- Formatos aceitos: `.jpg`, `.jpeg`, `.png`, `.webp`
-- Tamanho máximo: **5MB** por arquivo
-- Preview das imagens antes do envio
-- Imagens novas são exibidas com badge **"NOVA"**
-- Botão para remover imagens individuais
-
-#### 💰 Máscara de Moeda
-
-Os campos de preço possuem formatação automática no padrão brasileiro (`R$ 299,90`).
-O preço promocional é validado para ser menor que o preço normal.
-
-### Estrutura do Admin
-
-```
-backend/admin/
-├── index.html          # Página principal (formulário + lista de produtos)
-├── script.js           # Lógica separada (versão modular, para referência)
-├── input.css           # CSS fonte (Tailwind)
-├── output.css          # CSS compilado (Tailwind)
-└── components/         # Componentes JS modulares (versão SPA)
-    ├── menu.js         # Navegação lateral
-    ├── produtos.js     # CRUD de produtos
-    ├── categorias.js   # CRUD de categorias
-    └── itemDoDia.js    # Gestão de itens em destaque
-```
-
-### Arquitetura Backend (MVC)
-
-```
-backend/
-├── server.js              # Servidor Express (Helmet, Multer, rotas)
-├── controllers/
-│   ├── produtoController.js   # Lógica de negócio de produtos
-│   └── categoriaController.js # Lógica de negócio de categorias
-├── routes/
-│   ├── produtos.js        # Rotas → controller de produtos
-│   └── categorias.js      # Rotas → controller de categorias
-├── models/
-│   ├── Produto.js         # Schema: nome, preco, imagens[], categorias[], itemDoDia
-│   └── Categoria.js       # Schema: nome, descricao, imagem, ordem
-└── uploads/               # Imagens enviadas pelo admin
-```
-
-### Endpoints da API
-
-#### Produtos (`/api/produtos`)
-
-| Método | Endpoint            | Descrição                               |
+| Metodo | Endpoint            | Descricao                               |
 | ------ | ------------------- | --------------------------------------- |
 | GET    | `/api/produtos`     | Listar todos (aceita `?itemDoDia=true`) |
 | GET    | `/api/produtos/:id` | Buscar por ID                           |
@@ -132,19 +132,29 @@ backend/
 | PUT    | `/api/produtos/:id` | Atualizar produto                       |
 | DELETE | `/api/produtos/:id` | Excluir produto                         |
 
-#### Categorias (`/api/categorias`)
+### Categorias (`/api/categorias`)
 
-| Método | Endpoint              | Descrição                                |
-| ------ | --------------------- | ---------------------------------------- |
-| GET    | `/api/categorias`     | Listar todas (com produtos relacionados) |
-| GET    | `/api/categorias/:id` | Buscar por ID                            |
-| POST   | `/api/categorias`     | Criar categoria                          |
-| PUT    | `/api/categorias/:id` | Atualizar categoria                      |
-| DELETE | `/api/categorias/:id` | Excluir categoria                        |
+| Metodo | Endpoint              | Descricao                                 |
+| ------ | --------------------- | ----------------------------------------- |
+| GET    | `/api/categorias`     | Listar todas (`?ativas=true` para filtro) |
+| GET    | `/api/categorias/:id` | Buscar por ID                             |
+| POST   | `/api/categorias`     | Criar categoria                           |
+| PUT    | `/api/categorias/:id` | Atualizar categoria                       |
+| DELETE | `/api/categorias/:id` | Excluir categoria                         |
 
-#### Upload (`/api/upload`)
+### Configuracoes (`/api/config`)
 
-| Método | Endpoint               | Descrição                                 |
-| ------ | ---------------------- | ----------------------------------------- |
-| POST   | `/api/upload`          | Upload de imagem única (campo: `imagem`)  |
-| POST   | `/api/upload-multiple` | Upload múltiplo até 10 (campo: `imagens`) |
+| Metodo | Endpoint      | Descricao                                       |
+| ------ | ------------- | ----------------------------------------------- |
+| GET    | `/api/config` | Obter config (auto-cria default se nao existir) |
+| PUT    | `/api/config` | Atualizar config (merge parcial)                |
+
+### Upload (`/api/upload`)
+
+| Metodo | Endpoint                         | Descricao                          |
+| ------ | -------------------------------- | ---------------------------------- |
+| POST   | `/api/upload`                    | Upload unico (campo: `imagem`)     |
+| POST   | `/api/upload-multiple`           | Upload multiplo (campo: `imagens`) |
+| POST   | `/api/upload/:tipo/:id`          | Upload em subpasta                 |
+| POST   | `/api/upload-multiple/:tipo/:id` | Upload multiplo em subpasta        |
+| DELETE | `/api/upload`                    | Excluir arquivo (body: `file`)     |
