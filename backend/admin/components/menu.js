@@ -74,6 +74,8 @@ document.addEventListener("click", (e) => {
   if (page === "categorias" && window.renderCategorias)
     window.renderCategorias();
   if (page === "itemDoDia" && window.renderItemDoDia) window.renderItemDoDia();
+  if (page === "configuracoes" && window.renderConfiguracoes)
+    window.renderConfiguracoes();
 });
 
 // Expor globalmente

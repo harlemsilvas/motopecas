@@ -16,13 +16,15 @@
       tbody.innerHTML = "";
 
       if (categorias.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-400">Nenhuma categoria cadastrada.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-400">Nenhuma categoria cadastrada.</td></tr>`;
         return;
       }
 
       categorias.forEach((cat) => {
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-gray-50 transition";
+        tr.className =
+          "hover:bg-gray-50 transition" +
+          (cat.ativa === false ? " opacity-50" : "");
         tr.innerHTML = `
           <td class="py-3 pr-3">
             <div class="flex items-center gap-3">
@@ -34,6 +36,7 @@
             </div>
           </td>
           <td class="py-3 text-sm text-gray-600">${cat.ordem ?? 0}</td>
+          <td class="py-3 text-sm">${cat.ativa !== false ? '<span class="text-green-600 font-medium">Ativa</span>' : '<span class="text-gray-400">Oculta</span>'}</td>
           <td class="py-3 text-sm text-gray-400">${(cat.produtos || []).length} produto(s)</td>
           <td class="py-3 text-sm">
             <button data-editar-cat="${cat._id}" class="text-blue-600 hover:text-blue-800 font-medium mr-3 text-sm">Editar</button>
@@ -70,6 +73,7 @@
       ).value = cat.descricao || "";
       document.querySelector("#formCategoria input[name='ordem']").value =
         cat.ordem ?? 0;
+      document.getElementById("categoriaAtiva").checked = cat.ativa !== false;
 
       imagemAtual = cat.imagem || "";
       novaImagem = null;
@@ -213,6 +217,7 @@
         nome,
         descricao: form.descricao.value.trim(),
         ordem: parseInt(form.ordem.value) || 0,
+        ativa: document.getElementById("categoriaAtiva").checked,
       };
 
       let categoriaId = document.getElementById("categoriaId").value;
@@ -335,6 +340,11 @@
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"></textarea>
           </div>
 
+          <div class="mb-5 flex items-center gap-3">
+            <input type="checkbox" name="ativa" id="categoriaAtiva" checked class="w-5 h-5 text-blue-600 rounded" />
+            <label for="categoriaAtiva" class="text-sm font-medium text-gray-700">Exibir na página inicial</label>
+          </div>
+
           <div class="mb-5">
             <label class="block text-sm font-medium text-gray-700 mb-1">Imagem / Ícone</label>
             <input type="file" accept=".jpg,.jpeg,.png,.webp" id="uploadImagemCategoria"
@@ -367,6 +377,7 @@
               <tr class="border-b border-gray-200">
                 <th class="py-3 text-left text-sm font-medium text-gray-600">Categoria</th>
                 <th class="py-3 text-left text-sm font-medium text-gray-600">Ordem</th>
+                <th class="py-3 text-left text-sm font-medium text-gray-600">Status</th>
                 <th class="py-3 text-left text-sm font-medium text-gray-600">Produtos</th>
                 <th class="py-3 text-left text-sm font-medium text-gray-600">Ações</th>
               </tr>

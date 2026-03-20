@@ -6,6 +6,7 @@ const categoriaSchema = new mongoose.Schema({
   descricao: String,
   imagem: String, // URL da imagem da categoria
   ordem: { type: Number, default: 0 },
+  ativa: { type: Boolean, default: true }, // Exibir na página inicial
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -1,10 +1,22 @@
 // frontend/src/components/Destaques.jsx
+import { useState, useEffect } from "react";
 import { useCarrinho } from "../context/CarrinhoContext";
 import { getImageUrl } from "../utils/imageUtils";
 
 export default function Destaques({ produtos = [] }) {
   const { adicionarItem } = useCarrinho();
+  const [whatsapp, setWhatsapp] = useState("5511967745351");
+  const API_URL = import.meta.env.VITE_API_URL || "";
   const itensDoDia = produtos.filter((p) => p.itemDoDia);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/config`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.footer?.whatsapp) setWhatsapp(data.footer.whatsapp);
+      })
+      .catch(() => {});
+  }, []);
 
   if (itensDoDia.length === 0) return null;
 
@@ -66,7 +78,7 @@ export default function Destaques({ produtos = [] }) {
                       COMPRAR AGORA
                     </button>
                     <a
-                      href={`https://wa.me/5511967745351?text=Quero saber sobre ${encodeURIComponent(produto.nome)}`}
+                      href={`https://wa.me/${whatsapp}?text=Quero saber sobre ${encodeURIComponent(produto.nome)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block text-center text-green-500 text-sm font-medium hover:text-green-400"

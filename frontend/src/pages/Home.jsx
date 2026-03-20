@@ -7,20 +7,63 @@ import { getImageUrl } from "../utils/imageUtils";
 import Categorias from "../components/Categorias";
 import { useCarrinho } from "../context/CarrinhoContext";
 
+// Shuffle determinístico com seed (Fisher-Yates com PRNG simples)
+function seededShuffle(array, seed) {
+  const arr = [...array];
+  let s = seed;
+  function next() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  }
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function getSessionSeed() {
+  let seed = sessionStorage.getItem("motopecas_seed");
+  if (!seed) {
+    seed = String(Math.floor(Math.random() * 2147483647));
+    sessionStorage.setItem("motopecas_seed", seed);
+  }
+  return parseInt(seed, 10);
+}
+
 export default function Home() {
   const [destaques, setDestaques] = useState([]);
   const [produtos, setProdutos] = useState([]);
+  const [config, setConfig] = useState(null);
   const { adicionarItem } = useCarrinho();
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   useEffect(() => {
-    fetch(`${API_URL}/api/produtos`)
-      .then((res) => res.json())
-      .then((data) => {
-        setDestaques(data.filter((p) => p.itemDoDia));
-        setProdutos(data.filter((p) => !p.itemDoDia));
+    Promise.all([
+      fetch(`${API_URL}/api/produtos`).then((r) => r.json()),
+      fetch(`${API_URL}/api/config`).then((r) => r.json()),
+    ])
+      .then(([data, cfg]) => {
+        setConfig(cfg);
+        const dest = data.filter((p) => p.itemDoDia);
+        let prods = data.filter((p) => !p.itemDoDia);
+
+        // Randomizar se habilitado na config
+        if (cfg?.display?.randomizarProdutos) {
+          const seed = getSessionSeed();
+          dest.length > 1 && setDestaques(seededShuffle(dest, seed));
+          prods = seededShuffle(prods, seed + 1);
+        }
+
+        if (!cfg?.display?.randomizarProdutos) {
+          setDestaques(dest);
+        }
+
+        // Limitar por maxProdutosPorSecao
+        const max = cfg?.display?.maxProdutosPorSecao || 12;
+        setProdutos(prods.slice(0, max));
       })
-      .catch((err) => console.error("Erro ao carregar produtos:", err));
+      .catch((err) => console.error("Erro ao carregar dados:", err));
   }, []);
 
   return (

@@ -194,6 +194,7 @@ app.delete("/api/upload", (req, res) => {
 // ================== ROTAS DA API ==================
 app.use("/api/produtos", require("./routes/produtos"));
 app.use("/api/categorias", require("./routes/categorias"));
+app.use("/api/config", require("./routes/config"));
 
 // ================== ROTA RAIZ ==================
 app.get("/", (req, res) => {

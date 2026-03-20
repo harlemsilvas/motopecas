@@ -4,14 +4,22 @@ import { getImageUrl } from "../utils/imageUtils";
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);
+  const [whatsapp, setWhatsapp] = useState("5511967745351");
   const { adicionarItem } = useCarrinho();
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   useEffect(() => {
-    fetch(`${API_URL}/api/categorias`)
+    fetch(`${API_URL}/api/categorias?ativas=true`)
       .then((res) => res.json())
       .then((data) => setCategorias(data))
       .catch((err) => console.error("Erro ao carregar categorias:", err));
+
+    fetch(`${API_URL}/api/config`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.footer?.whatsapp) setWhatsapp(data.footer.whatsapp);
+      })
+      .catch(() => {});
   }, []);
 
   if (categorias.length === 0) return null;
@@ -76,7 +84,7 @@ export default function Categorias() {
                         COMPRAR AGORA
                       </button>
                       <a
-                        href={`https://wa.me/5511967745351?text=Tenho interesse em ${encodeURIComponent(produto.nome)}`}
+                        href={`https://wa.me/${whatsapp}?text=Tenho interesse em ${encodeURIComponent(produto.nome)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block text-center text-green-500 text-sm font-medium hover:text-green-400"
