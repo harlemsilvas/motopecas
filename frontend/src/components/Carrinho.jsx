@@ -18,7 +18,7 @@ export default function Carrinho() {
   return (
     <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 bg-card-bg border border-gray-700 shadow-lg rounded-lg p-4 sm:w-80 z-50 max-h-96 overflow-y-auto">
       <h3 className="font-bold text-text-light">
-        Seu Pedido ({itens.length} item(s))
+        Sua Lista ({itens.length} item(s))
       </h3>
       <ul className="mt-2 text-sm text-text-gray">
         {itens.map((item) => (
