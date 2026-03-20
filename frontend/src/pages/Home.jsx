@@ -5,98 +5,97 @@ import Destaques from "../components/Destaques";
 import Footer from "../components/Footer";
 import { getImageUrl } from "../utils/imageUtils";
 import Categorias from "../components/Categorias";
+import { useCarrinho } from "../context/CarrinhoContext";
 
 export default function Home() {
   const [destaques, setDestaques] = useState([]);
   const [produtos, setProdutos] = useState([]);
-  const API_URL = import.meta.env.VITE_API_URL;
+  const { adicionarItem } = useCarrinho();
+  const API_URL = import.meta.env.VITE_API_URL || "";
 
   useEffect(() => {
-    // ✅ Use a URL completa do backend
     fetch(`${API_URL}/api/produtos`)
       .then((res) => res.json())
       .then((data) => {
-        // Filtra os destaques (item do dia)
-        const itensDoDia = data.filter((p) => p.itemDoDia);
-        const outros = data.filter((p) => !p.itemDoDia);
-
-        setDestaques(itensDoDia);
-        setProdutos(outros);
+        setDestaques(data.filter((p) => p.itemDoDia));
+        setProdutos(data.filter((p) => !p.itemDoDia));
       })
       .catch((err) => console.error("Erro ao carregar produtos:", err));
   }, []);
 
   return (
-    <div>
+    <div className="bg-dark min-h-screen text-text-light">
       <Hero />
       <Destaques produtos={destaques} />
       <Categorias />
-      {/* Seção: Outros Produtos */}
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-8">
-            Outros Produtos
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {produtos.length > 0 ? (
-              produtos.map((produto) => {
-                // ✅ Monta a URL da imagem com o backend
-                const imgSrc = getImageUrl(produto.imagens?.[0]);
 
+      {/* Seção: Outros Produtos */}
+      {produtos.length > 0 && (
+        <section className="py-12">
+          <div className="max-w-6xl mx-auto px-5">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-10 relative after:content-[''] after:block after:w-16 after:h-[3px] after:bg-primary after:mx-auto after:mt-3">
+              Outros Produtos
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {produtos.map((produto) => {
+                const imgSrc = getImageUrl(produto.imagens?.[0]);
                 return (
                   <div
                     key={produto._id}
-                    className="bg-gray-50 rounded-lg overflow-hidden shadow"
+                    className="bg-card-bg rounded-lg overflow-hidden border border-gray-700 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,69,0,0.2)] hover:border-primary"
                   >
-                    <img
-                      src={imgSrc}
-                      alt={produto.nome}
-                      className="w-full h-40 object-cover"
-                      onError={(e) => {
-                        e.target.src = `${API_URL}/uploads/placeholder.jpg`;
-                      }}
-                    />
-                    <div className="p-4">
-                      <h3 className="font-semibold">{produto.nome}</h3>
-                      <p className="text-sm text-gray-600">
-                        {produto.descricao}
-                      </p>
-                      {produto.precoPromocional ? (
-                        <>
-                          <p className="text-lg font-bold text-red-600">
-                            R$ {produto.precoPromocional.toFixed(2)}
-                          </p>
-                          <p className="text-sm text-gray-500 line-through">
-                            R$ {produto.preco.toFixed(2)}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-lg font-bold">
-                          R$ {produto.preco.toFixed(2)}
+                    <div className="aspect-[4/3] bg-gray-800 flex items-center justify-center overflow-hidden">
+                      <img
+                        src={imgSrc}
+                        alt={produto.nome}
+                        className="w-full h-full object-contain p-2"
+                        onError={(e) => {
+                          e.target.src = getImageUrl(null);
+                        }}
+                      />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="text-base sm:text-lg font-semibold text-text-light mb-2">
+                        {produto.nome}
+                      </h3>
+                      {produto.descricao && (
+                        <p className="text-sm text-text-gray mb-3">
+                          {produto.descricao}
                         </p>
                       )}
+                      <div className="flex items-center gap-3 mb-4">
+                        {produto.precoPromocional ? (
+                          <>
+                            <span className="line-through text-text-gray text-sm">
+                              R$ {produto.preco.toFixed(2).replace(".", ",")}
+                            </span>
+                            <span className="text-primary text-xl sm:text-2xl font-bold">
+                              R${" "}
+                              {produto.precoPromocional
+                                .toFixed(2)
+                                .replace(".", ",")}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-primary text-xl sm:text-2xl font-bold">
+                            R$ {produto.preco.toFixed(2).replace(".", ",")}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => adicionarItem(produto)}
+                        className="block w-full py-2.5 sm:py-3 bg-transparent border-2 border-primary text-primary text-sm sm:text-base font-bold rounded text-center transition-all duration-300 hover:bg-primary hover:text-white"
+                      >
+                        COMPRAR AGORA
+                      </button>
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <p className="col-span-full text-center text-gray-500">
-                Nenhum outro produto cadastrado.
-              </p>
-            )}
+              })}
+            </div>
           </div>
-          <div className="text-center mt-8">
-            <a
-              href="https://wa.me/5511999999999?text=Olá! Gostaria de ver mais peças para motos."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded"
-            >
-              Ver Mais no WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </div>

@@ -1,6 +1,12 @@
 // tailwind.config.js
 module.exports = {
-  content: ["./backend/admin/*.html"],
+  content: [
+    "./admin/**/*.html",
+    "./admin/**/*.js",
+    "./admin/components/*.js",
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx,vue}",
+  ],
   theme: {
     extend: {
       fontFamily: {
