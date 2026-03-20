@@ -3,22 +3,26 @@
 ## Visao Geral da Arquitetura de Deploy
 
 ```
-                    Hostinger VPS
-                    ┌─────────────────────────────────┐
-                    │                                 │
-  Visitante ──────► │  Nginx (porta 80/443)           │
-                    │    │                            │
-                    │    ├── /           → dist/      │ ◄── Frontend (arquivos estaticos)
-                    │    ├── /admin      → backend/   │ ◄── Admin (arquivos estaticos)
-                    │    ├── /api/*      → :5000      │ ◄── Proxy reverso para Node
-                    │    └── /uploads/*  → :5000      │ ◄── Proxy reverso para Node
-                    │                                 │
-                    │  Node.js (porta 5000)           │
-                    │    └── backend/server.js        │ ◄── PM2 gerencia o processo
-                    │                                 │
-                    │  MongoDB Atlas (externo)        │ ◄── Ja configurado
-                    └─────────────────────────────────┘
+                    Hostinger VPS (hrmmotos.com.br)
+                    ┌────────────────────────────────────────┐
+                    │                                        │
+  Visitante ──────► │  Nginx (porta 80/443)                  │
+                    │    │                                   │
+                    │    ├── /motopecas/        → dist/      │ ◄── Frontend SPA (Vite)
+                    │    ├── /motopecas/admin/  → backend/   │ ◄── Admin (arquivos estaticos)
+                    │    ├── /motopecas/api/*   → :5000      │ ◄── Proxy reverso para Node
+                    │    ├── /motopecas/uploads → uploads/   │ ◄── Servido direto pelo Nginx
+                    │    └── /restaurante/...   → :3001      │ ◄── Outros apps no mesmo VPS
+                    │                                        │
+                    │  Node.js (porta 5000)                  │
+                    │    └── backend/server.js               │ ◄── PM2 gerencia o processo
+                    │                                        │
+                    │  MongoDB Atlas (externo)               │ ◄── Ja configurado
+                    └────────────────────────────────────────┘
 ```
+
+> **Nota**: O motopecas roda sob o subpath `/motopecas/` no dominio
+> compartilhado hrmmotos.com.br, junto com outros apps (restaurante, etc).
 
 ## Pre-requisitos
 
@@ -201,94 +205,59 @@ curl http://localhost:5000  # Deve retornar JSON
 
 ---
 
-## Etapa 4: Configurar Nginx
+## Etapa 4: Configurar Nginx (subpath no dominio compartilhado)
 
-### 4.1 Criar configuracao do site
+O motopecas compartilha o dominio hrmmotos.com.br com outros apps.
+A configuracao completa esta no arquivo `hrmmotos` na raiz do projeto.
 
-```bash
-sudo nano /etc/nginx/sites-available/motopecas
-```
-
-```nginx
-server {
-    listen 80;
-    server_name seudominio.com www.seudominio.com;
-
-    # Frontend (React build)
-    root /home/motopecas/app/frontend/dist;
-    index index.html;
-
-    # SPA - todas as rotas do frontend vao para index.html
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Admin (servido pelo backend, mas pode ser direto pelo Nginx)
-    location /admin {
-        alias /home/motopecas/app/backend/admin;
-        index index.html;
-        try_files $uri $uri/ /admin/index.html;
-    }
-
-    # API - proxy reverso para Node.js
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        client_max_body_size 10M;
-    }
-
-    # Uploads - proxy para Node.js servir os arquivos
-    location /uploads/ {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
-}
-```
-
-### 4.2 Ativar o site
+### 4.1 Copiar a configuracao atualizada
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/motopecas /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
+# Como root ou com sudo:
+sudo cp /home/motopecas/app/hrmmotos /etc/nginx/sites-available/hrmmotos
+sudo ln -sf /etc/nginx/sites-available/hrmmotos /etc/nginx/sites-enabled/hrmmotos
+```
+
+### 4.2 Testar e recarregar
+
+```bash
 sudo nginx -t          # Testar configuracao
 sudo systemctl reload nginx
 ```
 
-### 4.3 Verificar
+### 4.3 Blocos adicionados para motopecas
+
+O arquivo `hrmmotos` inclui os seguintes locations (em HTTP e HTTPS):
+
+| Location                    | Destino                                     |
+| --------------------------- | ------------------------------------------- |
+| `/motopecas/`               | Frontend SPA (frontend/dist/) com try_files |
+| `/motopecas/admin/`         | Admin panel (backend/admin/)                |
+| `/motopecas/api/`           | Proxy → :5000 (strip /motopecas prefix)     |
+| `/motopecas/uploads/`       | Serve direto do filesystem (sem proxy)      |
+| `/motopecas/sem-imagem.png` | Imagem fallback (backend/public/)           |
+
+### 4.4 Verificar
 
 ```bash
-curl http://seudominio.com        # Deve retornar HTML do React
-curl http://seudominio.com/api/   # Deve retornar JSON da API
+curl https://hrmmotos.com.br/motopecas/         # Frontend HTML
+curl https://hrmmotos.com.br/motopecas/api/config  # API JSON
+curl https://hrmmotos.com.br/motopecas/admin/    # Admin HTML
 ```
 
 ---
 
 ## Etapa 5: SSL com Let's Encrypt (HTTPS)
 
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d seudominio.com -d www.seudominio.com
-```
-
-Certbot configura automaticamente o redirect HTTP -> HTTPS.
+> SSL ja esta configurado no VPS para hrmmotos.com.br.
+> O arquivo `hrmmotos` ja inclui o bloco HTTPS (porta 443) com os
+> certificados Let's Encrypt existentes. Nao e necessario gerar novos.
 
 ### Renovacao automatica
 
 ```bash
 sudo certbot renew --dry-run   # Testar renovacao
 ```
-
-> Certbot ja cria um cron/timer para renovar automaticamente.
 
 ---
 
@@ -402,15 +371,16 @@ connectSrc: ["'self'", "https://seudominio.com"],
 
 ### 7.2 CORS em producao
 
-Se frontend e backend estiverem no mesmo dominio (via Nginx proxy), CORS nao e necessario. Caso contrario, configurar dominio especifico:
+Como frontend e backend estao no mesmo dominio (via Nginx proxy com subpath), CORS nao e necessario.
 
-```javascript
-app.use(cors({ origin: "https://seudominio.com" }));
-```
+### 7.3 Frontend - Subpath (ja configurado)
 
-### 7.3 Frontend VITE_API_URL
+O `vite.config.js` usa `base: '/motopecas/'` automaticamente no build.
+O arquivo `frontend/.env.production` define `VITE_API_URL=/motopecas`
+para que chamadas API incluam o prefixo do subpath.
 
-Como Nginx faz proxy de `/api` e `/uploads` no mesmo dominio, **NAO precisa** de `VITE_API_URL`. O fallback `""` ja funciona.
+O admin detecta o subpath automaticamente via `window.location.pathname`
+no `menu.js` (ex: `/motopecas/admin/` → `API_URL = "/motopecas"`).
 
 ### 7.4 Firewall
 
@@ -434,19 +404,21 @@ No painel Atlas, adicionar o IP do VPS na Network Access.
 - [ ] VPS criado e acessivel via SSH
 - [ ] Node.js 20 instalado
 - [ ] PM2 instalado e configurado para boot
-- [ ] Nginx instalado e configurado
+- [ ] Nginx com arquivo `hrmmotos` (blocos motopecas incluidos)
 - [ ] Repositorio clonado em `/home/motopecas/app`
 - [ ] `backend/.env` configurado com DATABASE_URL de producao
 - [ ] `npm install` no backend (--production)
-- [ ] `npm run build` no frontend
-- [ ] PM2 rodando `motopecas-api`
-- [ ] Nginx proxy reverso `/api` e `/uploads` -> porta 5000
-- [ ] SSL/HTTPS com Let's Encrypt
-- [ ] Firewall (ufw) configurado
+- [ ] `npm run build` no frontend (gera dist/ com base /motopecas/)
+- [ ] PM2 rodando `motopecas-api` na porta 5000
+- [ ] Nginx reload apos copiar hrmmotos
+- [ ] SSL/HTTPS ja configurado (Let's Encrypt)
+- [ ] Firewall (ufw) configurado (22, 80, 443)
 - [ ] IP do VPS na whitelist do MongoDB Atlas
-- [ ] GitHub Actions configurado para deploy automatico
 - [ ] Pasta /uploads com permissoes corretas
-- [ ] Testar: site, admin, API, upload de imagem
+- [ ] Testar: hrmmotos.com.br/motopecas/ (frontend)
+- [ ] Testar: hrmmotos.com.br/motopecas/admin/ (admin)
+- [ ] Testar: hrmmotos.com.br/motopecas/api/config (API)
+- [ ] Testar: upload de imagem via admin
 
 ---
 

@@ -24,14 +24,14 @@
       }
 
       produtos.forEach((p) => {
-        const img = p.imagens?.[0] || "/sem-imagem.png";
+        const img = apiImg(p.imagens?.[0] || '/sem-imagem.png');
         const cats = (p.categorias || []).map((c) => c.nome || "—").join(", ");
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
         tr.innerHTML = `
           <td class="py-3 pr-3">
             <div class="flex items-center gap-3">
-              <img src="${img}" alt="${p.nome}" class="w-12 h-12 object-cover rounded border" onerror="this.src='/sem-imagem.png'" />
+              <img src="${img}" alt="${p.nome}" class="w-12 h-12 object-cover rounded border" onerror="this.src=apiImg('/sem-imagem.png')" />
               <div>
                 <p class="font-medium text-gray-800">${p.nome}</p>
                 <p class="text-xs text-gray-400">${cats || "Sem categoria"}</p>
@@ -191,7 +191,7 @@
       const div = document.createElement("div");
       div.className = "relative";
       div.innerHTML = `
-        <img src="${url}" class="w-16 h-16 object-cover rounded border" onerror="this.src='/sem-imagem.png'" />`;
+        <img src="${apiImg(url)}" class="w-16 h-16 object-cover rounded border" onerror="this.src=apiImg('/sem-imagem.png')" />`;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className =

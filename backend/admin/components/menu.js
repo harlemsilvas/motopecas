@@ -1,6 +1,24 @@
 // backend/admin/components/menu.js
 
-const API_URL = window.location.origin;
+// Detecta subpath automaticamente:
+// Em dev: /admin/ → API_URL = "" (mesmo origin)
+// Em prod: /motopecas/admin/ → API_URL = "/motopecas"
+const _path = window.location.pathname;
+const _adminIdx = _path.indexOf("/admin");
+const API_URL = _adminIdx > 0 ? _path.substring(0, _adminIdx) : "";
+
+// Prefixar API_URL em paths de imagens do servidor
+// Ignora URLs absolutas (http/blob/data) para compatibilidade com previews locais
+function apiImg(path) {
+  if (
+    !path ||
+    path.startsWith("http") ||
+    path.startsWith("blob:") ||
+    path.startsWith("data:")
+  )
+    return path || "";
+  return API_URL + path;
+}
 
 // ==================== Toast de Feedback ====================
 function mostrarMensagem(texto, tipo = "info") {
@@ -84,3 +102,4 @@ window.formatarMoeda = formatarMoeda;
 window.parseMoeda = parseMoeda;
 window.aplicarMascara = aplicarMascara;
 window.API_URL = API_URL;
+window.apiImg = apiImg;

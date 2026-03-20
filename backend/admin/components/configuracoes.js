@@ -64,7 +64,7 @@
     if (imgUrl) {
       container.innerHTML = `
         <div class="relative inline-block">
-          <img src="${imgUrl}" class="h-20 rounded border object-cover" />
+          <img src="${apiImg(imgUrl)}" class="h-20 rounded border object-cover" />
           <button type="button" id="btnRemoverBg"
             class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-700 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center shadow">✕</button>
           ${novaImagemFundo ? '<span class="absolute bottom-0 left-0 right-0 bg-blue-600 text-white text-[10px] text-center rounded-b">NOVA</span>' : ""}

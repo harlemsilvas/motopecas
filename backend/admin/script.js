@@ -71,7 +71,7 @@ function mostrarMensagem(texto, cor = "blue") {
  */
 async function carregarProdutos() {
   try {
-    const res = await fetch("http://localhost:5000/api/produtos");
+    const res = await fetch(`${API_URL}/api/produtos`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const produtos = await res.json();
     const tbody = document.getElementById("listaProdutos");
@@ -79,7 +79,7 @@ async function carregarProdutos() {
 
     produtos.forEach((produto) => {
       const tr = document.createElement("tr");
-      const imgSrc = produto.imagens?.[0] || "/sem-imagem.png";
+      const imgSrc = apiImg(produto.imagens?.[0] || '/sem-imagem.png');
 
       tr.innerHTML = `
         <td class="py-3">
@@ -115,7 +115,7 @@ async function carregarProdutos() {
 async function excluirProduto(id, nome) {
   if (!confirm(`Tem certeza que deseja excluir "${nome}"?`)) return;
   try {
-    const res = await fetch(`http://localhost:5000/api/produtos/${id}`, {
+    const res = await fetch(`${API_URL}/api/produtos/${id}`, {
       method: "DELETE",
     });
     if (res.ok) {
@@ -135,7 +135,7 @@ async function excluirProduto(id, nome) {
  */
 async function editarProduto(id) {
   try {
-    const res = await fetch(`http://localhost:5000/api/produtos/${id}`);
+    const res = await fetch(`${API_URL}/api/produtos/${id}`);
     if (!res.ok) throw new Error("Produto não encontrado");
     produtoAtual = await res.json();
 
@@ -272,7 +272,7 @@ function setupFormSubmit() {
       );
 
       try {
-        const res = await fetch("http://localhost:5000/api/upload-multiple", {
+        const res = await fetch(`${API_URL}/api/upload-multiple`, {
           method: "POST",
           body: formData,
         });
@@ -290,7 +290,7 @@ function setupFormSubmit() {
 
     const id = document.getElementById("produtoId")?.value || "";
     const method = id ? "PUT" : "POST";
-    const url = `http://localhost:5000/api/produtos${id ? "/" + id : ""}`;
+    const url = `${API_URL}/api/produtos${id ? "/" + id : ""}`;
 
     console.log("🚀 Enviando", method, "para", url);
 
@@ -525,7 +525,7 @@ function limparFormulario() {
  */
 async function carregarCategoriasSelect() {
   try {
-    const res = await fetch("http://localhost:5000/api/categorias");
+    const res = await fetch(`${API_URL}/api/categorias`);
     const categorias = await res.json();
     const select = document.getElementById("selectCategorias");
     if (!select) return;
