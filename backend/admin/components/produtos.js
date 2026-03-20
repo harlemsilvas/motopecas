@@ -24,7 +24,7 @@
       }
 
       produtos.forEach((p) => {
-        const img = apiImg(p.imagens?.[0] || '/sem-imagem.png');
+        const img = apiImg(p.imagens?.[0] || "/sem-imagem.png");
         const cats = (p.categorias || []).map((c) => c.nome || "—").join(", ");
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";

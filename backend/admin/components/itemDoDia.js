@@ -17,7 +17,7 @@
       }
 
       produtos.forEach((p) => {
-        const img = apiImg(p.imagens?.[0] || '/sem-imagem.png');
+        const img = apiImg(p.imagens?.[0] || "/sem-imagem.png");
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
         tr.innerHTML = `
