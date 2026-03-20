@@ -276,7 +276,7 @@ nano /home/motopecas/deploy.sh
 set -e
 
 APP_DIR="/home/motopecas/app"
-echo "=== Deploy MotoSpeed ==="
+echo "=== Deploy HRMMotos ==="
 echo "$(date)"
 
 cd $APP_DIR
@@ -361,12 +361,16 @@ cat ~/.ssh/id_deploy
 
 ## Etapa 7: Ajustes de Producao
 
-### 7.1 Atualizar CSP do Helmet
+### 7.1 CSP do Helmet (connectSrc)
 
-Em `backend/server.js`, em producao o `connectSrc` precisa permitir o dominio:
+O `connectSrc: ["'self'"]` em `backend/server.js` ja funciona corretamente
+porque Nginx faz proxy no mesmo dominio. NAO precisa alterar.
+
+Caso futuramente o frontend e API fiquem em dominios diferentes, seria
+necessario adicionar o dominio externo:
 
 ```javascript
-connectSrc: ["'self'", "https://seudominio.com"],
+connectSrc: ["'self'", "https://outro-dominio.com"],
 ```
 
 ### 7.2 CORS em producao
