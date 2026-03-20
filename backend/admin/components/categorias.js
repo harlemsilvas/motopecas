@@ -167,7 +167,7 @@
     } else if (imagemAtual) {
       const div = document.createElement("div");
       div.className = "relative inline-block";
-      div.innerHTML = `<img src="${imagemAtual}" class="w-20 h-20 object-cover rounded border" onerror="this.src='/uploads/sem-imagem.png'" />`;
+      div.innerHTML = `<img src="${imagemAtual}" class="w-20 h-20 object-cover rounded border" onerror="this.src='/sem-imagem.png'" />`;
       div.appendChild(criarBtnRemover());
       container.appendChild(div);
     } else {

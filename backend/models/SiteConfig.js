@@ -17,9 +17,9 @@ const siteConfigSchema = new mongoose.Schema({
   footer: {
     endereco: { type: String, default: "Rua das Motos, 123 - Centro" },
     cidade: { type: String, default: "São Paulo - SP" },
-    telefone1: { type: String, default: "(11) 96774-5351" },
+    telefone1: { type: String, default: "(11) 11111-1111" },
     telefone2: { type: String, default: "(11) 3333-4444" },
-    whatsapp: { type: String, default: "5511967745351" },
+    whatsapp: { type: String, default: "551111111111" },
     instagram: { type: String, default: "https://instagram.com/motopecas" },
     horarios: {
       semana: { type: String, default: "Seg-Sex: 8h às 18h" },

@@ -17,13 +17,13 @@
       }
 
       produtos.forEach((p) => {
-        const img = p.imagens?.[0] || "/uploads/sem-imagem.png";
+        const img = p.imagens?.[0] || "/sem-imagem.png";
         const tr = document.createElement("tr");
         tr.className = "hover:bg-gray-50 transition";
         tr.innerHTML = `
           <td class="py-3 pr-3">
             <div class="flex items-center gap-3">
-              <img src="${img}" alt="${p.nome}" class="w-12 h-12 object-cover rounded border" onerror="this.src='/uploads/sem-imagem.png'" />
+              <img src="${img}" alt="${p.nome}" class="w-12 h-12 object-cover rounded border" onerror="this.src='/sem-imagem.png'" />
               <div>
                 <p class="font-medium text-gray-800">${p.nome}</p>
                 <p class="text-xs text-gray-400">${p.descricao ? p.descricao.substring(0, 60) + (p.descricao.length > 60 ? "..." : "") : ""}</p>

@@ -79,7 +79,7 @@ async function carregarProdutos() {
 
     produtos.forEach((produto) => {
       const tr = document.createElement("tr");
-      const imgSrc = produto.imagens?.[0] || "/uploads/sem-imagem.png";
+      const imgSrc = produto.imagens?.[0] || "/sem-imagem.png";
 
       tr.innerHTML = `
         <td class="py-3">
