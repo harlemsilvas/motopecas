@@ -19,3 +19,4 @@ backend/uploads/categorias/
 backend/uploads/produtos/
 backend/tree.txt
 inutilizados/
+scripts\cadastrar_admin.py

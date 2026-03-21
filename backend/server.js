@@ -50,7 +50,13 @@ app.use("/uploads", express.static(uploadsDir));
 console.log("✅ Arquivos estáticos: /uploads disponíveis");
 
 app.use(express.static(path.join(__dirname, "public")));
-app.use("/admin", express.static(path.join(__dirname, "admin")));
+// Protege o painel admin com JWT
+const authMiddleware = require("./auth/authMiddleware");
+app.use(
+  "/admin",
+  authMiddleware,
+  express.static(path.join(__dirname, "admin")),
+);
 
 // ================== CONFIGURAÇÃO DO MULTER ==================
 const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
@@ -192,9 +198,18 @@ app.delete("/api/upload", (req, res) => {
 });
 
 // ================== ROTAS DA API ==================
+
+// ================== ROTAS DE AUTENTICAÇÃO ==================
+app.use("/api/auth", require("./auth/authRoutes"));
+
+// ================== ROTAS DA API ==================
 app.use("/api/produtos", require("./routes/produtos"));
 app.use("/api/categorias", require("./routes/categorias"));
 app.use("/api/config", require("./routes/config"));
+
+// Exemplo de proteção de rota admin (para uso futuro):
+// const authMiddleware = require('./auth/authMiddleware');
+// app.use('/admin', authMiddleware, express.static(path.join(__dirname, 'admin')));
 
 // ================== ROTA RAIZ ==================
 app.get("/", (req, res) => {

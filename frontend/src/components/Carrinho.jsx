@@ -47,13 +47,13 @@ export default function Carrinho() {
         rel="noopener noreferrer"
         className="block mt-3 bg-green-600 text-white text-center py-2 rounded text-sm hover:bg-green-500 transition"
       >
-        Finalizar Pedido via WhatsApp
+        Enviar Lista via WhatsApp/Loja
       </a>
       <button
         onClick={limparCarrinho}
         className="block mt-1 text-xs text-text-gray w-full text-left hover:text-text-light"
       >
-        Limpar carrinho
+        Limpar Lista
       </button>
     </div>
   );
