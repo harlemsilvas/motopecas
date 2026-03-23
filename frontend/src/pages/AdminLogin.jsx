@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // 1. Importe o useNavigate
 
 export default function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate(); // 2. Inicialize o hook
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,9 +19,16 @@ export default function AdminLogin({ onLogin }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
+
       const data = await res.json();
+
       if (res.ok && data.token) {
         localStorage.setItem("admin_token", data.token);
+
+        // 3. Use o navigate em vez de window.location.href
+        // Como o basename já é /motopecas, basta navegar para /admin
+        navigate("/admin");
+
         if (onLogin) onLogin();
       } else {
         setError(data.error || "Erro ao fazer login");
