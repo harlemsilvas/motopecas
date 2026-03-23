@@ -2,7 +2,7 @@ import requests
 import getpass
 import sys
 
-API_URL = "http://172.27.32.1:5000/api/auth"
+API_URL = "http://localhost:5000/api/auth"
 TOKEN_FILE = "token.txt"
 
 def cadastrar_usuario(username, password):
