@@ -19,11 +19,11 @@ function RequireAuth({ children }) {
 
 function App() {
   return (
-    // 1. Defina o basename aqui. Isso remove a necessidade de repetir "/motopecas" nos paths
     <BrowserRouter basename="/motopecas">
       <Routes>
+        {/* Rota da Loja */}
         <Route
-          path="/" // Isso agora representa http://.../motopecas/
+          path="/"
           element={
             <>
               <Home />
@@ -31,16 +31,12 @@ function App() {
             </>
           }
         />
+
+        {/* Rotas do Admin */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+
         <Route
-          path="/admin/login" // Isso agora representa http://.../motopecas/admin/login
-          element={
-            <AdminLogin
-              onLogin={() => (window.location.href = "/motopecas/admin")}
-            />
-          }
-        />
-        <Route
-          path="/admin" // Isso representa http://.../motopecas/admin
+          path="/admin"
           element={
             <RequireAuth>
               <AdminLayout />
@@ -54,9 +50,12 @@ function App() {
           <Route path="configuracoes" element={<Configuracoes />} />
           <Route path="item-do-dia" element={<ItemDoDia />} />
         </Route>
+
+        {/* Fallback para rotas não encontradas */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
-return App;
+export default App;
