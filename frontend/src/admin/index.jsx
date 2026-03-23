@@ -12,7 +12,7 @@ const menuItems = [
 
 function handleLogout() {
   localStorage.removeItem("admin_token");
-  window.location.href = "/admin/login";
+  window.location.href = "/motopecas/admin/login";
 }
 export default function AdminLayout() {
   return (
