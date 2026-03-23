@@ -13,15 +13,17 @@ import AdminLayout from "./admin/index";
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem("admin_token");
+  // Agora o path é relativo ao basename definido abaixo
   return token ? children : <Navigate to="/admin/login" replace />;
 }
 
 function App() {
   return (
-    <BrowserRouter>
+    // 1. Defina o basename aqui. Isso remove a necessidade de repetir "/motopecas" nos paths
+    <BrowserRouter basename="/motopecas">
       <Routes>
         <Route
-          path="/motopecas"
+          path="/" // Isso agora representa http://.../motopecas/
           element={
             <>
               <Home />
@@ -30,7 +32,7 @@ function App() {
           }
         />
         <Route
-          path="/motopecas/admin/login"
+          path="/admin/login" // Isso agora representa http://.../motopecas/admin/login
           element={
             <AdminLogin
               onLogin={() => (window.location.href = "/motopecas/admin")}
@@ -38,7 +40,7 @@ function App() {
           }
         />
         <Route
-          path="/motopecas/admin"
+          path="/admin" // Isso representa http://.../motopecas/admin
           element={
             <RequireAuth>
               <AdminLayout />
@@ -57,4 +59,4 @@ function App() {
   );
 }
 
-export default App;
+return App;
