@@ -8,7 +8,7 @@ export default function AdminHome() {
         <h2 className="text-2xl font-bold mb-4 text-center">Painel Admin</h2>
         <Link
           className="bg-blue-600 text-white py-2 rounded text-center"
-          to="/admin/usuarios"
+          to="/motopecas/admin/usuarios"
         >
           Gerenciar Usuários
         </Link>

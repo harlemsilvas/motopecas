@@ -14,7 +14,7 @@ import AdminLayout from "./admin/index";
 function RequireAuth({ children }) {
   const token = localStorage.getItem("admin_token");
   // Agora o path é relativo ao basename definido abaixo
-  return token ? children : <Navigate to="/admin/login" replace />;
+  return token ? children : <Navigate to="/motopecas/admin/login" replace />;
 }
 
 function App() {
