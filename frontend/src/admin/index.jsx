@@ -1,4 +1,4 @@
-import React from "react";
+// /admin/index.jsx
 import { Outlet, NavLink } from "react-router-dom";
 
 const menuItems = [
@@ -10,11 +10,15 @@ const menuItems = [
   { to: "/admin/usuarios", label: "Usuários" },
 ];
 
-function handleLogout() {
-  localStorage.removeItem("admin_token");
-  window.location.href = "/motopecas/admin/login";
-}
 export default function AdminLayout() {
+  const navigate = useNavigate(); // Inicialize o hook dentro do componente
+
+  function handleLogout() {
+    localStorage.removeItem("admin_token");
+    // O basename já cuida do prefixo /motopecas, então use apenas o path relativo
+    navigate("/admin/login");
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
@@ -49,13 +53,18 @@ export default function AdminLayout() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `block px-4 py-2 rounded menu-item transition font-medium ${isActive ? "bg-white/10 border-l-4 border-yellow-400" : "hover:bg-white/5"}`
+                `block px-4 py-2 rounded menu-item transition font-medium ${
+                  isActive
+                    ? "bg-white/10 border-l-4 border-yellow-400"
+                    : "hover:bg-white/5"
+                }`
               }
               end={item.to === "/admin"}
             >
               {item.label}
             </NavLink>
           ))}
+
           <button
             onClick={handleLogout}
             className="block w-full text-left px-4 py-2 mt-4 rounded bg-red-600 hover:bg-red-700 transition font-medium text-white"
@@ -64,6 +73,7 @@ export default function AdminLayout() {
           </button>
         </nav>
       </aside>
+
       {/* Conteúdo */}
       <main className="flex-1 ml-64 p-8">
         <Outlet />
