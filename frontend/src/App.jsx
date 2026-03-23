@@ -13,15 +13,15 @@ import AdminLayout from "./admin/index";
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem("admin_token");
-  // Agora o path é relativo ao basename definido abaixo
-  return token ? children : <Navigate to="/motopecas/admin/login" replace />;
+  // O basename já cuida do "/motopecas", então use o path relativo ao app
+  return token ? children : <Navigate to="/admin/login" replace />;
 }
 
 function App() {
   return (
     <BrowserRouter basename="/motopecas">
       <Routes>
-        {/* Rota da Loja */}
+        {/* Rota da Loja (http://.../motopecas/) */}
         <Route
           path="/"
           element={
@@ -35,6 +35,7 @@ function App() {
         {/* Rotas do Admin */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
+        {/* Rota Protegida do Admin */}
         <Route
           path="/admin"
           element={
@@ -51,7 +52,7 @@ function App() {
           <Route path="item-do-dia" element={<ItemDoDia />} />
         </Route>
 
-        {/* Fallback para rotas não encontradas */}
+        {/* Fallback para rotas não encontradas (Redireciona para /motopecas/) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
