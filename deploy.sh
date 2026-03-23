@@ -17,6 +17,7 @@ npm install --production
 
 # Frontend
 echo ">> Build do frontend..."
+export VITE_UPLOADS_URL=https://hrmmotos.com.br/motopecas/uploads
 cd "$APP_DIR/frontend"
 npm install
 npm run build
