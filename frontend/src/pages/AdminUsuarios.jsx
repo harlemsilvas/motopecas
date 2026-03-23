@@ -15,7 +15,7 @@ export default function AdminUsuarios() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/auth/users", {
+        const res = await fetch("/motopecas/api/auth/users", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -35,7 +35,7 @@ export default function AdminUsuarios() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/motopecas/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +62,7 @@ export default function AdminUsuarios() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`/api/auth/users/${username}`, {
+      const res = await fetch(`/motopecas/api/auth/users/${username}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
