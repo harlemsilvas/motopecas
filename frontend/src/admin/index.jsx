@@ -1,5 +1,5 @@
 // /admin/index.jsx
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 
 const menuItems = [
   { to: "/admin", label: "Dashboard" },

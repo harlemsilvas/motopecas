@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProdutoForm from "./ProdutoForm";
 
-const _path = window.location.pathname;
-const _adminIdx = _path.indexOf("/admin");
-const API_URL = _adminIdx > 0 ? _path.substring(0, _adminIdx) : "";
+// API_URL removido, use apenas '/api/...'
 
 function apiImg(path) {
   if (
@@ -13,7 +11,7 @@ function apiImg(path) {
     path.startsWith("data:")
   )
     return path || "";
-  return API_URL + path;
+  return path;
 }
 
 export default function Produtos() {
@@ -27,7 +25,7 @@ export default function Produtos() {
     async function carregarProdutos() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/produtos`);
+        const res = await fetch(`/api/produtos`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setProdutos(data);
@@ -40,7 +38,7 @@ export default function Produtos() {
     }
     async function carregarCategorias() {
       try {
-        const res = await fetch(`${API_URL}/api/categorias`);
+        const res = await fetch(`/api/categorias`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setCategorias(data);
