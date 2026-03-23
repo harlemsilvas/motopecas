@@ -30,13 +30,15 @@ function App() {
           }
         />
         <Route
-          path="/admin/login"
+          path="/motopecas/admin/login"
           element={
-            <AdminLogin onLogin={() => (window.location.href = "/admin")} />
+            <AdminLogin
+              onLogin={() => (window.location.href = "/motopecas/admin")}
+            />
           }
         />
         <Route
-          path="/admin"
+          path="/motopecas/admin"
           element={
             <RequireAuth>
               <AdminLayout />
