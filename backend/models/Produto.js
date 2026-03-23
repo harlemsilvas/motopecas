@@ -16,6 +16,8 @@ const produtoSchema = new mongoose.Schema({
       default: [],
     },
   ],
+  ativo: { type: Boolean, default: true },
+  deactivatedAt: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
 });
 

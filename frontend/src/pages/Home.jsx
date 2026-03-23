@@ -40,13 +40,15 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API_URL}/api/produtos`).then((r) => r.json()),
+      fetch(`${API_URL}/api/produtos?ativo=true`).then((r) => r.json()),
       fetch(`${API_URL}/api/config`).then((r) => r.json()),
     ])
       .then(([data, cfg]) => {
         setConfig(cfg);
-        const dest = data.filter((p) => p.itemDoDia);
-        let prods = data.filter((p) => !p.itemDoDia);
+        // Garante que só produtos ativos serão exibidos
+        const ativos = data.filter((p) => p.ativo !== false);
+        const dest = ativos.filter((p) => p.itemDoDia);
+        let prods = ativos.filter((p) => !p.itemDoDia);
 
         // Randomizar se habilitado na config
         if (cfg?.display?.randomizarProdutos) {
@@ -81,7 +83,9 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {produtos.map((produto) => {
-                const imgSrc = getImageUrl(produto.imagens?.[0]);
+                // Garante imagem padrão se não houver
+                const imgSrc =
+                  getImageUrl(produto.imagens?.[0]) || getImageUrl(null);
                 return (
                   <div
                     key={produto._id}

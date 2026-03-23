@@ -17,6 +17,9 @@ export default function ProdutoForm({
   );
   const [itemDoDia, setItemDoDia] = useState(produto?.itemDoDia || false);
   const [imagens, setImagens] = useState([]);
+  const [ativo, setAtivo] = useState(
+    produto?.ativo !== undefined ? produto.ativo : true,
+  );
 
   useEffect(() => {
     if (produto) {
@@ -26,6 +29,17 @@ export default function ProdutoForm({
       setDescricao(produto.descricao || "");
       setCats(produto.categorias?.map((c) => c._id) || []);
       setItemDoDia(produto.itemDoDia || false);
+      setAtivo(produto?.ativo !== undefined ? produto.ativo : true);
+    } else {
+      // Limpa o formulário quando produto volta a ser null
+      setNome("");
+      setPreco("");
+      setPrecoPromocional("");
+      setDescricao("");
+      setCats([]);
+      setItemDoDia(false);
+      setImagens([]);
+      setAtivo(true);
     }
   }, [produto]);
 
@@ -39,6 +53,7 @@ export default function ProdutoForm({
       categorias: cats,
       itemDoDia,
       imagens,
+      ativo,
     });
   }
 
@@ -151,22 +166,30 @@ export default function ProdutoForm({
           </label>
         </div>
       </div>
-      <div className="flex gap-2 mt-4">
+      <div className="flex gap-2 mt-4 items-center">
+        <input
+          type="checkbox"
+          id="ativo"
+          checked={ativo}
+          onChange={(e) => setAtivo(e.target.checked)}
+        />
+        <label htmlFor="ativo" className="text-gray-700 font-medium">
+          {ativo ? "Produto Ativo" : "Produto Inativo"}
+        </label>
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition"
           type="submit"
         >
           {produto ? "Salvar Alterações" : "Cadastrar Produto"}
         </button>
-        {produto && (
-          <button
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded font-semibold transition"
-            type="button"
-            onClick={onCancel}
-          >
-            Cancelar
-          </button>
-        )}
+        <button
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-2 rounded font-semibold transition"
+          type="button"
+          onClick={onCancel}
+          style={{ display: produto ? undefined : "none" }}
+        >
+          Cancelar
+        </button>
       </div>
     </form>
   );

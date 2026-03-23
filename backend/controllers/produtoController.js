@@ -4,6 +4,8 @@ exports.listarProdutos = async (req, res) => {
   try {
     const filtro = {};
     if (req.query.itemDoDia === "true") filtro.itemDoDia = true;
+    if (req.query.ativo === "true") filtro.ativo = true;
+    if (req.query.ativo === "false") filtro.ativo = false;
 
     const produtos = await Produto.find(filtro).populate(
       "categorias",
@@ -14,6 +16,42 @@ exports.listarProdutos = async (req, res) => {
     res
       .status(500)
       .json({ erro: "Erro ao listar produtos", detalhes: err.message });
+  }
+};
+
+// Ativar produto
+exports.ativarProduto = async (req, res) => {
+  try {
+    const produto = await Produto.findByIdAndUpdate(
+      req.params.id,
+      { ativo: true, deactivatedAt: null },
+      { new: true },
+    );
+    if (!produto)
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    res.json(produto);
+  } catch (err) {
+    res
+      .status(400)
+      .json({ erro: "Erro ao ativar produto", detalhes: err.message });
+  }
+};
+
+// Desativar produto
+exports.desativarProduto = async (req, res) => {
+  try {
+    const produto = await Produto.findByIdAndUpdate(
+      req.params.id,
+      { ativo: false, deactivatedAt: new Date() },
+      { new: true },
+    );
+    if (!produto)
+      return res.status(404).json({ erro: "Produto não encontrado" });
+    res.json(produto);
+  } catch (err) {
+    res
+      .status(400)
+      .json({ erro: "Erro ao desativar produto", detalhes: err.message });
   }
 };
 
@@ -47,12 +85,28 @@ exports.criarProduto = async (req, res) => {
 
 exports.atualizarProduto = async (req, res) => {
   try {
+    // Buscar produto atual para comparar valor de ativo
+    const produtoAtual = await Produto.findById(req.params.id);
+    if (!produtoAtual)
+      return res.status(404).json({ erro: "Produto não encontrado" });
+
+    const atualizandoAtivo =
+      typeof req.body.ativo !== "undefined" &&
+      req.body.ativo !== produtoAtual.ativo;
+
+    // Se está mudando ativo para false, seta deactivatedAt
+    if (atualizandoAtivo && req.body.ativo === false) {
+      req.body.deactivatedAt = new Date();
+    }
+    // Se está mudando ativo para true, limpa deactivatedAt
+    if (atualizandoAtivo && req.body.ativo === true) {
+      req.body.deactivatedAt = null;
+    }
+
     const produto = await Produto.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     }).populate("categorias", "nome imagem");
-    if (!produto)
-      return res.status(404).json({ erro: "Produto não encontrado" });
     res.json(produto);
   } catch (err) {
     res

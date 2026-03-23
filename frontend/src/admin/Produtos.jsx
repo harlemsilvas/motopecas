@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProdutoForm from "./ProdutoForm";
 
 // API_URL removido, use apenas '/api/...'
@@ -20,6 +20,7 @@ export default function Produtos() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [editando, setEditando] = useState(null);
+  const formRef = useRef(null);
 
   useEffect(() => {
     async function carregarProdutos() {
@@ -48,17 +49,27 @@ export default function Produtos() {
     carregarCategorias();
   }, []);
 
-  function handleSubmit(produto) {
-    // Aqui você pode implementar POST/PUT para cadastrar/editar
-    // Por enquanto, só simula e reseta edição
+  async function handleSubmit(produto) {
     if (editando) {
-      setProdutos(
-        produtos.map((p) =>
-          p._id === editando._id ? { ...editando, ...produto } : p,
-        ),
-      );
-      setEditando(null);
+      try {
+        const res = await fetch(`/api/produtos/${editando._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(produto),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const atualizado = await res.json();
+        setProdutos(
+          produtos.map((p) => (p._id === editando._id ? atualizado : p)),
+        );
+        setEditando(null); // Limpa o formulário após salvar
+      } catch (err) {
+        alert("Erro ao atualizar produto: " + err.message);
+      }
     } else {
+      // Aqui você pode implementar o POST real se desejar
       setProdutos([
         ...produtos,
         {
@@ -74,6 +85,11 @@ export default function Produtos() {
 
   function handleEditar(produto) {
     setEditando(produto);
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 0);
   }
 
   function handleExcluir(id) {
@@ -84,6 +100,7 @@ export default function Produtos() {
 
   return (
     <div className="max-w-6xl mx-auto mt-8">
+      <div ref={formRef} />
       <ProdutoForm
         onSubmit={handleSubmit}
         categorias={categorias}
