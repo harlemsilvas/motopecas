@@ -138,11 +138,30 @@ exports.listarProdutos = async (req, res) => {
     if (req.query.ativo === "true") filtro.ativo = true;
     if (req.query.ativo === "false") filtro.ativo = false;
 
-    const produtos = await Produto.find(filtro).populate(
-      "categorias",
-      "nome imagem",
-    );
-    res.json(produtos);
+    // Ordenação
+    let sort = { nome: 1 };
+    if (req.query.ordem === "desc") sort = { nome: -1 };
+
+    // Paginação
+    const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1;
+    const limit =
+      parseInt(req.query.limit) > 0 ? parseInt(req.query.limit) : 10;
+    const skip = (page - 1) * limit;
+
+    const total = await Produto.countDocuments(filtro);
+    const produtos = await Produto.find(filtro)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .populate("categorias", "nome imagem");
+
+    res.json({
+      produtos,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     res
       .status(500)

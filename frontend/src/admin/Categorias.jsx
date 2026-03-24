@@ -78,7 +78,7 @@ export default function Categorias() {
             Nenhuma categoria cadastrada.
           </div>
         ) : (
-          <table className="w-full">
+          <table className="w-full text-gray-800">
             <thead>
               <tr>
                 <th>Categoria</th>

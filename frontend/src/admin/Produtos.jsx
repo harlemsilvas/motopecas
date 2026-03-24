@@ -7,6 +7,12 @@ import { getImageUrl } from "../utils/imageUtils";
 
 export default function Produtos() {
   const [produtos, setProdutos] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
+  const [mostrarAtivos, setMostrarAtivos] = useState(true);
+  const [ordem, setOrdem] = useState("asc"); // ascendente por padrão
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
@@ -17,10 +23,19 @@ export default function Produtos() {
     async function carregarProdutos() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/produtos`);
+        let url = `${API_URL}/api/produtos`;
+        const params = [];
+        if (mostrarAtivos) params.push("ativo=true");
+        if (ordem) params.push(`ordem=${ordem}`);
+        params.push(`page=${page}`);
+        params.push(`limit=${limit}`);
+        if (params.length > 0) url += "?" + params.join("&");
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setProdutos(data);
+        setProdutos(data.produtos || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
         setErro("");
       } catch (err) {
         setErro("Falha ao carregar produtos: " + err.message);
@@ -39,6 +54,44 @@ export default function Produtos() {
     carregarProdutos();
     carregarCategorias();
   }, []);
+
+  useEffect(() => {
+    async function carregarProdutos() {
+      setLoading(true);
+      try {
+        let url = `${API_URL}/api/produtos`;
+        const params = [];
+        if (mostrarAtivos) params.push("ativo=true");
+        if (ordem) params.push(`ordem=${ordem}`);
+        params.push(`page=${page}`);
+        params.push(`limit=${limit}`);
+        if (params.length > 0) url += "?" + params.join("&");
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setProdutos(data.produtos || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 1);
+        setErro("");
+      } catch (err) {
+        setErro("Falha ao carregar produtos: " + err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    carregarProdutos();
+    // eslint-disable-next-line
+  }, [mostrarAtivos, ordem, page]);
+  function handlePageChange(novaPagina) {
+    if (novaPagina >= 1 && novaPagina <= totalPages) setPage(novaPagina);
+  }
+  function handleOrdemChange(e) {
+    setOrdem(e.target.value);
+  }
+  // Filtro de ativos
+  function handleFiltroAtivos(e) {
+    setMostrarAtivos(e.target.checked);
+  }
 
   async function handleSubmit(produto) {
     let imagensUrls = [];
@@ -148,7 +201,52 @@ export default function Produtos() {
         produto={editando}
         onCancel={() => setEditando(null)}
       />
+      <div className="flex items-center gap-4 mb-4">
+        <label className="flex items-center gap-2 text-gray-600">
+          <input
+            type="checkbox"
+            checked={mostrarAtivos}
+            onChange={handleFiltroAtivos}
+          />
+          Exibir apenas produtos ativos
+        </label>
+        <label className="flex items-center gap-2 text-gray-600">
+          <span>Ordem:</span>
+          <select
+            value={ordem}
+            onChange={handleOrdemChange}
+            className="border rounded px-2 py-1 text-sm"
+            style={{ width: 36 }}
+            title="Ordenar por nome"
+          >
+            <option value="asc">▲</option>
+            <option value="desc">▼</option>
+          </select>
+        </label>
+      </div>
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+        <div className="flex justify-between items-center mb-2">
+          <div className="text-sm text-gray-500">
+            Exibindo página {page} de {totalPages} ({total} produtos)
+          </div>
+          <div className="flex gap-1">
+            <button
+              className="px-2 py-1 text-sm border rounded disabled:opacity-50 text-gray-600"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+            >
+              ◀
+            </button>
+            <span className="px-2 py-1 text-sm text-gray-800">{page}</span>
+            <button
+              className="px-2 py-1 text-sm border rounded disabled:opacity-50 text-gray-600"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === totalPages}
+            >
+              ▶
+            </button>
+          </div>
+        </div>
         <h2 className="text-lg font-bold mb-4 text-gray-800">
           Produtos Cadastrados
         </h2>
@@ -164,10 +262,22 @@ export default function Produtos() {
           <table className="w-full">
             <thead>
               <tr>
-                <th className="text-left">Produto</th>
-                <th className="text-left">Preço</th>
-                <th className="text-left">Item do Dia</th>
-                <th className="text-left">Ações</th>
+                <th className="text-center text-gray-600 font-medium">
+                  <span>Produto</span>
+                  <button
+                    type="button"
+                    className="ml-1 text-xs px-1 py-0.5 rounded border border-gray-300 bg-gray-50 hover:bg-gray-100 transition"
+                    title={ordem === "asc" ? "Ordenar Z-A" : "Ordenar A-Z"}
+                    onClick={() => setOrdem(ordem === "asc" ? "desc" : "asc")}
+                  >
+                    {ordem === "asc" ? "▲" : "▼"}
+                  </button>
+                </th>
+                <th className="text-left text-gray-600 font-medium">Preço</th>
+                <th className="text-left text-gray-600 font-medium">
+                  Item do Dia
+                </th>
+                <th className="text-left text-gray-600 font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
