@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProdutoForm from "./ProdutoForm";
 
-// API_URL removido, use apenas '/api/...'
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 import { getImageUrl } from "../utils/imageUtils";
 
@@ -16,7 +16,7 @@ export default function ItemDoDia() {
     async function carregarItensDoDia() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/produtos?itemDoDia=true`);
+        const res = await fetch(`${API_URL}/api/produtos?itemDoDia=true`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setProdutos(data);
@@ -29,7 +29,7 @@ export default function ItemDoDia() {
     }
     async function carregarCategorias() {
       try {
-        const res = await fetch(`/api/categorias`);
+        const res = await fetch(`${API_URL}/api/categorias`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setCategorias(data);

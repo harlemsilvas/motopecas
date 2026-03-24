@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL || "";
+
 export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [novoUsuario, setNovoUsuario] = useState("");
@@ -15,7 +17,7 @@ export default function AdminUsuarios() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/auth/users", {
+        const res = await fetch(`${API_URL}/api/auth/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -35,7 +37,7 @@ export default function AdminUsuarios() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -62,7 +64,7 @@ export default function AdminUsuarios() {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch(`/api/auth/users/${username}`, {
+      const res = await fetch(`${API_URL}/api/auth/users/${username}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
