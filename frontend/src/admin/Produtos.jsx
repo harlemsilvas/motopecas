@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import ProdutoForm from "./ProdutoForm";
 
-// API_URL removido, use apenas '/api/...'
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 function apiImg(path) {
   if (
@@ -26,7 +26,7 @@ export default function Produtos() {
     async function carregarProdutos() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/produtos`);
+        const res = await fetch(`${API_URL}/api/produtos`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setProdutos(data);
@@ -39,7 +39,7 @@ export default function Produtos() {
     }
     async function carregarCategorias() {
       try {
-        const res = await fetch(`/api/categorias`);
+        const res = await fetch(`${API_URL}/api/categorias`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setCategorias(data);
@@ -52,7 +52,7 @@ export default function Produtos() {
   async function handleSubmit(produto) {
     if (editando) {
       try {
-        const res = await fetch(`/api/produtos/${editando._id}`, {
+        const res = await fetch(`${API_URL}/api/produtos/${editando._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

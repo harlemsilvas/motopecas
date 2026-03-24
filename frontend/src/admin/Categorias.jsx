@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CategoriaForm from "./CategoriaForm";
 
-// API_URL removido, use apenas '/api/...'
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 function apiImg(path) {
   if (
@@ -24,7 +24,7 @@ export default function Categorias() {
     async function carregarCategorias() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/categorias`);
+        const res = await fetch(`${API_URL}/api/categorias`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setCategorias(data);
