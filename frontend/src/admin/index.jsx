@@ -8,6 +8,7 @@ const menuItems = [
   { to: "/admin/item-do-dia", label: "Item do Dia" },
   { to: "/admin/configuracoes", label: "Configurações" },
   { to: "/admin/usuarios", label: "Usuários" },
+  { to: "/admin/importacao", label: "Importar Produtos" }, // NOVO MENU
 ];
 
 export default function AdminLayout() {

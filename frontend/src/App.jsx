@@ -10,6 +10,7 @@ import Produtos from "./admin/Produtos";
 import Configuracoes from "./admin/Configuracoes";
 import ItemDoDia from "./admin/ItemDoDia";
 import AdminLayout from "./admin/index";
+import ImportacaoProdutos from "./admin/importacao/ImportacaoProdutos";
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem("admin_token");
@@ -50,6 +51,8 @@ function App() {
           <Route path="produtos" element={<Produtos />} />
           <Route path="configuracoes" element={<Configuracoes />} />
           <Route path="item-do-dia" element={<ItemDoDia />} />
+          <Route path="importacao" element={<ImportacaoProdutos />} />{" "}
+          {/* NOVA ROTA */}
         </Route>
 
         {/* Fallback para rotas não encontradas (Redireciona para /motopecas/) */}

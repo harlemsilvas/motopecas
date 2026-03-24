@@ -15,8 +15,8 @@ __pycache__/
 *.env
 .vscode/
 .venv/
-# backend/uploads/categorias/
-# backend/uploads/produtos/
+backend/uploads/categorias/
+backend/uploads/produtos/
 backend/tree.txt
 inutilizados/
 scripts/cadastrar_admin.py

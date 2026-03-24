@@ -1,5 +1,6 @@
 // backend/server.js
 require("dotenv").config({ path: __dirname + "/.env" });
+
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -8,8 +9,9 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const multer = require("multer");
 const fs = require("fs");
-
 const app = express();
+
+const produtosRoutes = require("./routes/produtos");
 
 // Porta
 const PORT = process.env.PORT || 5000;
@@ -203,7 +205,7 @@ app.delete("/api/upload", (req, res) => {
 app.use("/api/auth", require("./auth/authRoutes"));
 
 // ================== ROTAS DA API ==================
-app.use("/api/produtos", require("./routes/produtos"));
+app.use("/api/produtos", produtosRoutes);
 app.use("/api/categorias", require("./routes/categorias"));
 app.use("/api/config", require("./routes/config"));
 
@@ -255,8 +257,8 @@ mongoose
     console.log("✅ Conectado ao MongoDB");
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`\n🚀 Backend rodando na porta ${PORT}`);
-      console.log(`🔗 Painel admin: http://localhost:${PORT}/admin`);
-      console.log(`📁 Uploads: http://localhost:${PORT}/uploads`);
+      // console.log(`🔗 Painel admin: http://localhost:${PORT}/admin`);
+      // console.log(`📁 Uploads: http://localhost:${PORT}/uploads`);
     });
   })
   .catch((err) => {

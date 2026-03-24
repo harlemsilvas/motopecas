@@ -11,4 +11,7 @@ router.post("/", produtoController.criarProduto);
 router.put("/:id", produtoController.atualizarProduto);
 router.delete("/:id", produtoController.removerProduto);
 
+// Importação em lote
+router.post("/importar", produtoController.importarProdutos);
+
 module.exports = router;
