@@ -9,12 +9,13 @@ export default function AdminLogin({ onLogin }) {
 
   const navigate = useNavigate(); // 2. Inicialize o hook
 
+  const API_URL = import.meta.env.VITE_API_URL || "";
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -24,11 +25,7 @@ export default function AdminLogin({ onLogin }) {
 
       if (res.ok && data.token) {
         localStorage.setItem("admin_token", data.token);
-
-        // 3. Use o navigate em vez de window.location.href
-        // Como o basename já é /motopecas, basta navegar para /admin
         navigate("/admin");
-
         if (onLogin) onLogin();
       } else {
         setError(data.error || "Erro ao fazer login");
