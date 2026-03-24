@@ -87,11 +87,15 @@ export default function ItemDoDia() {
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={getImageUrl(p.imagens?.[0] || "/sem-imagem.png")}
+                        src={getImageUrl(
+                          p.imagens?.[0] || "/motopecas/sem-imagem.png",
+                        )}
                         alt={p.nome}
                         className="w-12 h-12 object-cover rounded border"
                         onError={(e) =>
-                          (e.target.src = getImageUrl("/sem-imagem.png"))
+                          (e.target.src = getImageUrl(
+                            "/motopecas/sem-imagem.png",
+                          ))
                         }
                       />
                       <div>
