@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
+import { getImageUrl } from "../utils/imageUtils";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function Configuracoes() {
-  import { getImageUrl } from "../utils/imageUtils";
-
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
