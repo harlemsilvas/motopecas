@@ -6,6 +6,8 @@ export default function ProdutoForm({
   produto,
   onCancel,
 }) {
+  // Para resetar o input file
+  const [fileInputKey, setFileInputKey] = useState(0);
   const [nome, setNome] = useState(produto?.nome || "");
   const [preco, setPreco] = useState(produto?.preco || "");
   const [precoPromocional, setPrecoPromocional] = useState(
@@ -43,6 +45,8 @@ export default function ProdutoForm({
       setImagens([]);
       setAtivo(true);
     }
+    // Sempre que trocar de produto, reseta o input file
+    setFileInputKey((k) => k + 1);
   }, [produto]);
 
   function handleSubmit(e) {
@@ -138,6 +142,7 @@ export default function ProdutoForm({
             Imagens (até 10)
           </label>
           <input
+            key={fileInputKey}
             className="w-full border p-2 rounded bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
             type="file"
             multiple
