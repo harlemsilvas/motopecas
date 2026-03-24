@@ -16,7 +16,8 @@ export default function ProdutoForm({
     produto?.categorias?.map((c) => c._id) || [],
   );
   const [itemDoDia, setItemDoDia] = useState(produto?.itemDoDia || false);
-  const [imagens, setImagens] = useState([]);
+  // imagens: pode ser File (novas) ou string (URL de já salvas)
+  const [imagens, setImagens] = useState(produto?.imagens || []);
   const [ativo, setAtivo] = useState(
     produto?.ativo !== undefined ? produto.ativo : true,
   );
@@ -30,6 +31,7 @@ export default function ProdutoForm({
       setCats(produto.categorias?.map((c) => c._id) || []);
       setItemDoDia(produto.itemDoDia || false);
       setAtivo(produto?.ativo !== undefined ? produto.ativo : true);
+      setImagens(produto.imagens || []);
     } else {
       // Limpa o formulário quando produto volta a ser null
       setNome("");
@@ -55,6 +57,33 @@ export default function ProdutoForm({
       imagens,
       ativo,
     });
+  }
+
+  // Funções para thumbs
+  function handleThumbDelete(idx) {
+    setImagens((imgs) => imgs.filter((_, i) => i !== idx));
+  }
+
+  function handleThumbMove(idx, dir) {
+    setImagens((imgs) => {
+      const novo = [...imgs];
+      const alvo = idx + dir;
+      if (alvo < 0 || alvo >= imgs.length) return imgs;
+      [novo[idx], novo[alvo]] = [novo[alvo], novo[idx]];
+      return novo;
+    });
+  }
+
+  // Função para obter URL da imagem (File ou string)
+  function getThumbUrl(img) {
+    if (typeof img === "string") {
+      // Caminho salvo no banco, já padronizado para /motopecas/uploads/...
+      return import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/\/$/, "") + img
+        : img;
+    }
+    // File novo
+    return URL.createObjectURL(img);
   }
 
   return (
@@ -113,11 +142,70 @@ export default function ProdutoForm({
             type="file"
             multiple
             accept="image/*"
-            onChange={(e) => setImagens([...e.target.files])}
+            onChange={(e) => {
+              // Adiciona novas imagens ao final
+              const files = Array.from(e.target.files);
+              setImagens((imgs) => [...imgs, ...files].slice(0, 10));
+            }}
           />
           <span className="text-xs text-gray-400">
             {imagens.length}/10 imagens
           </span>
+
+          {/* Bloco de thumbs */}
+          {imagens.length > 0 && (
+            <div className="flex flex-wrap gap-3 mt-3">
+              {imagens.map((img, idx) => (
+                <div
+                  key={idx}
+                  className="relative group border rounded shadow-sm bg-gray-50 p-1 flex flex-col items-center"
+                  style={{ width: 90 }}
+                >
+                  <img
+                    src={getThumbUrl(img)}
+                    alt={
+                      typeof img === "string" ? `Imagem ${idx + 1}` : img.name
+                    }
+                    className="w-20 h-20 object-cover rounded"
+                    style={{ background: "#eee" }}
+                  />
+                  <div className="flex gap-1 mt-1">
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded"
+                      onClick={() => handleThumbMove(idx, -1)}
+                      disabled={idx === 0}
+                      title="Mover para esquerda"
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded"
+                      onClick={() => handleThumbMove(idx, 1)}
+                      disabled={idx === imagens.length - 1}
+                      title="Mover para direita"
+                    >
+                      →
+                    </button>
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-0.5 bg-red-200 hover:bg-red-400 text-red-800 rounded"
+                      onClick={() => handleThumbDelete(idx)}
+                      title="Excluir imagem"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {idx === 0 && (
+                    <span className="absolute top-0 left-0 bg-blue-600 text-white text-[10px] px-1 rounded-br">
+                      Principal
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="mb-4">

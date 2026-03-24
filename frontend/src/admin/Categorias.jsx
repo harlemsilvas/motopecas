@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import CategoriaForm from "./CategoriaForm";
+import { getImageUrl } from "../utils/imageUtils";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
-
-import { getImageUrl } from "../utils/imageUtils";
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);
