@@ -12,6 +12,8 @@ const PLACEHOLDER =
 export function getImageUrl(path) {
   if (!path) return PLACEHOLDER;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  // Se já é um path absoluto do subpath, retorna direto
+  if (path.startsWith("/motopecas/")) return path;
   // Remove barras iniciais e prefixo 'uploads/' duplicado
   const cleanPath = path.replace(/^\/+/, "").replace(/^uploads\//, "");
   const baseUrl = import.meta.env.VITE_UPLOADS_URL || "/uploads";
