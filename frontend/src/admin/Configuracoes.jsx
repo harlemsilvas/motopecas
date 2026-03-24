@@ -3,16 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function Configuracoes() {
-  function apiImg(path) {
-    if (
-      !path ||
-      path.startsWith("http") ||
-      path.startsWith("blob:") ||
-      path.startsWith("data:")
-    )
-      return path || "";
-    return API_URL + path;
-  }
+  import { getImageUrl } from "../utils/imageUtils";
 
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);

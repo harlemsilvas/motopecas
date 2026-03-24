@@ -3,16 +3,7 @@
 const _path = window.location.pathname;
 const _adminIdx = _path.indexOf("/admin");
 const API_URL = _adminIdx > 0 ? _path.substring(0, _adminIdx) : "";
-function apiImg(path) {
-  if (
-    !path ||
-    path.startsWith("http") ||
-    path.startsWith("blob:") ||
-    path.startsWith("data:")
-  )
-    return path || "";
-  return API_URL + path;
-}
+import { getImageUrl } from "../../utils/imageUtils";
 function mostrarMensagem(texto, tipo = "info") {
   const toast = document.getElementById("toast");
   if (!toast) return;

@@ -3,16 +3,7 @@ import CategoriaForm from "./CategoriaForm";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-function apiImg(path) {
-  if (
-    !path ||
-    path.startsWith("http") ||
-    path.startsWith("blob:") ||
-    path.startsWith("data:")
-  )
-    return path || "";
-  return path;
-}
+import { getImageUrl } from "../utils/imageUtils";
 
 export default function Categorias() {
   const [categorias, setCategorias] = useState([]);

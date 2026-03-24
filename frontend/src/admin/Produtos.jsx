@@ -3,16 +3,7 @@ import ProdutoForm from "./ProdutoForm";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-function apiImg(path) {
-  if (
-    !path ||
-    path.startsWith("http") ||
-    path.startsWith("blob:") ||
-    path.startsWith("data:")
-  )
-    return path || "";
-  return path;
-}
+import { getImageUrl } from "../utils/imageUtils";
 
 export default function Produtos() {
   const [produtos, setProdutos] = useState([]);
@@ -50,6 +41,44 @@ export default function Produtos() {
   }, []);
 
   async function handleSubmit(produto) {
+    let imagensUrls = [];
+    // Se houver imagens (FileList), faz upload
+    if (
+      produto.imagens &&
+      produto.imagens.length > 0 &&
+      produto.imagens[0] instanceof File
+    ) {
+      try {
+        // Para novo produto, precisamos de um id temporário (pois não existe no banco ainda)
+        const produtoId = editando
+          ? editando._id
+          : Math.random().toString(36).slice(2);
+        const fd = new FormData();
+        for (const img of produto.imagens) {
+          fd.append("imagens", img);
+        }
+        const upRes = await fetch(
+          `${API_URL}/api/upload-multiple/produtos/${produtoId}`,
+          {
+            method: "POST",
+            body: fd,
+          },
+        );
+        if (!upRes.ok) throw new Error("Falha no upload das imagens");
+        const result = await upRes.json();
+        imagensUrls = result.urls || [];
+        produto.imagens = imagensUrls;
+        // Se for novo, salva o id temporário para o produto
+        if (!editando) produto._id = produtoId;
+      } catch (err) {
+        alert("Erro ao enviar imagens: " + err.message);
+        return;
+      }
+    }
+    // Remove arquivos File do produto antes de enviar para API
+    if (produto.imagens && produto.imagens[0] instanceof File) {
+      produto.imagens = imagensUrls;
+    }
     if (editando) {
       try {
         const res = await fetch(`${API_URL}/api/produtos/${editando._id}`, {
@@ -69,17 +98,29 @@ export default function Produtos() {
         alert("Erro ao atualizar produto: " + err.message);
       }
     } else {
-      // Aqui você pode implementar o POST real se desejar
-      setProdutos([
-        ...produtos,
-        {
-          ...produto,
-          _id: Math.random().toString(36).slice(2),
-          categorias: categorias.filter((c) =>
-            produto.categorias.includes(c._id),
-          ),
-        },
-      ]);
+      // POST real para criar produto
+      try {
+        const res = await fetch(`${API_URL}/api/produtos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(produto),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const novo = await res.json();
+        setProdutos([
+          ...produtos,
+          {
+            ...novo,
+            categorias: categorias.filter((c) =>
+              produto.categorias.includes(c._id),
+            ),
+          },
+        ]);
+      } catch (err) {
+        alert("Erro ao criar produto: " + err.message);
+      }
     }
   }
 
@@ -135,11 +176,11 @@ export default function Produtos() {
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={apiImg(p.imagens?.[0] || "/sem-imagem.png")}
+                        src={getImageUrl(p.imagens?.[0] || "/sem-imagem.png")}
                         alt={p.nome}
                         className="w-12 h-12 object-cover rounded border"
                         onError={(e) =>
-                          (e.target.src = apiImg("/sem-imagem.png"))
+                          (e.target.src = getImageUrl("/sem-imagem.png"))
                         }
                       />
                       <div>

@@ -3,16 +3,7 @@ import ProdutoForm from "./ProdutoForm";
 
 // API_URL removido, use apenas '/api/...'
 
-function apiImg(path) {
-  if (
-    !path ||
-    path.startsWith("http") ||
-    path.startsWith("blob:") ||
-    path.startsWith("data:")
-  )
-    return path || "";
-  return path;
-}
+import { getImageUrl } from "../utils/imageUtils";
 
 export default function ItemDoDia() {
   const [produtos, setProdutos] = useState([]);
@@ -96,11 +87,11 @@ export default function ItemDoDia() {
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={apiImg(p.imagens?.[0] || "/sem-imagem.png")}
+                        src={getImageUrl(p.imagens?.[0] || "/sem-imagem.png")}
                         alt={p.nome}
                         className="w-12 h-12 object-cover rounded border"
                         onError={(e) =>
-                          (e.target.src = apiImg("/sem-imagem.png"))
+                          (e.target.src = getImageUrl("/sem-imagem.png"))
                         }
                       />
                       <div>

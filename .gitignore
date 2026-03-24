@@ -1,5 +1,5 @@
 node_modules/
-.env
+# .env
 .env.local
 /uploads/*
 !.gitkeep
@@ -15,9 +15,11 @@ __pycache__/
 *.env
 .vscode/
 .venv/
-backend/uploads/categorias/
-backend/uploads/produtos/
+# backend/uploads/categorias/
+# backend/uploads/produtos/
 backend/tree.txt
 inutilizados/
 scripts/cadastrar_admin.py
 backend/admin
+nbshelper
+hrmmotos
