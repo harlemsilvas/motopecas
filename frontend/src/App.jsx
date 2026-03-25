@@ -19,7 +19,7 @@ function RequireAuth({ children }) {
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   React.useEffect(() => {
-    fetch(`${API_URL}/api/auth/me`, {
+    fetch(`/api/auth/me`, {
       credentials: "include",
     })
       .then((res) => setIsAuth(res.ok))
