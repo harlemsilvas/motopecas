@@ -6,7 +6,7 @@
  * @returns {string} URL completa ou relativa
  */
 // SVG placeholder inline — evita requisições repetidas ao servidor
-const PLACEHOLDER =
+export const PLACEHOLDER =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23333333'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23a0a0a0' font-family='sans-serif' font-size='16'%3ESem imagem%3C/text%3E%3C/svg%3E";
 
 export function getImageUrl(path) {
@@ -35,3 +35,4 @@ export function getImageUrl(path) {
 //   const baseUrl = import.meta.env.VITE_API_URL || "";
 
 //   return `${baseUrl}${cleanPath}`;
+// }

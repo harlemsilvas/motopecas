@@ -3,7 +3,7 @@ import ProdutoForm from "./ProdutoForm";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-import { getImageUrl, PLACEHOLDER } from "../utils/imageUtils";
+import { getImageUrl } from "../utils/imageUtils";
 
 export default function Produtos() {
   const [produtos, setProdutos] = useState([]);
@@ -20,7 +20,7 @@ export default function Produtos() {
         const res = await fetch(`${API_URL}/api/produtos`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setProdutos(data.produtos || []);
+        setProdutos(data);
         setErro("");
       } catch (err) {
         setErro("Falha ao carregar produtos: " + err.message);
@@ -42,53 +42,23 @@ export default function Produtos() {
 
   async function handleSubmit(produto) {
     let imagensUrls = [];
-    let produtoId = editando ? editando._id : null;
-    let novoProduto = null;
-
-    // 1. Se for novo produto, cria primeiro para obter o _id real
-    if (!editando) {
+    // Se houver imagens (FileList), faz upload
+    if (
+      produto.imagens &&
+      produto.imagens.length > 0 &&
+      produto.imagens[0] instanceof File
+    ) {
       try {
-        const res = await fetch(`${API_URL}/api/produtos`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...produto,
-            imagens: [], // não envia imagens ainda
-          }),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        novoProduto = await res.json();
-        produtoId = novoProduto._id;
-      } catch (err) {
-        alert("Erro ao criar produto: " + err.message);
-        return;
-      }
-    }
-
-    // 2. Se houver imagens, separar novas (File) das antigas (string)
-    let imagensAntigas = [];
-    let imagensNovas = [];
-    if (produto.imagens && produto.imagens.length > 0) {
-      for (const img of produto.imagens) {
-        if (img instanceof File) {
-          imagensNovas.push(img);
-        } else if (typeof img === "string") {
-          imagensAntigas.push(img);
-        }
-      }
-    }
-
-    // Upload das novas imagens, se houver
-    if (imagensNovas.length > 0 && (editando || produtoId)) {
-      try {
+        // Para novo produto, precisamos de um id temporário (pois não existe no banco ainda)
+        const produtoId = editando
+          ? editando._id
+          : Math.random().toString(36).slice(2);
         const fd = new FormData();
-        for (const img of imagensNovas) {
+        for (const img of produto.imagens) {
           fd.append("imagens", img);
         }
         const upRes = await fetch(
-          `${API_URL}/api/upload-multiple/produtos/${editando ? editando._id : produtoId}`,
+          `${API_URL}/api/upload-multiple/produtos/${produtoId}`,
           {
             method: "POST",
             body: fd,
@@ -96,45 +66,61 @@ export default function Produtos() {
         );
         if (!upRes.ok) throw new Error("Falha no upload das imagens");
         const result = await upRes.json();
-        imagensUrls = [...imagensAntigas, ...(result.urls || [])];
+        imagensUrls = result.urls || [];
+        produto.imagens = imagensUrls;
+        // Se for novo, salva o id temporário para o produto
+        if (!editando) produto._id = produtoId;
       } catch (err) {
         alert("Erro ao enviar imagens: " + err.message);
         return;
       }
-    } else {
-      imagensUrls = imagensAntigas;
     }
-
-    // 3. Atualiza o produto com as URLs das imagens
-    try {
-      const idParaAtualizar = editando ? editando._id : produtoId;
-      const res = await fetch(`${API_URL}/api/produtos/${idParaAtualizar}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...produto, imagens: imagensUrls }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const atualizado = await res.json();
-      if (editando) {
+    // Remove arquivos File do produto antes de enviar para API
+    if (produto.imagens && produto.imagens[0] instanceof File) {
+      produto.imagens = imagensUrls;
+    }
+    if (editando) {
+      try {
+        const res = await fetch(`${API_URL}/api/produtos/${editando._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(produto),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const atualizado = await res.json();
         setProdutos(
           produtos.map((p) => (p._id === editando._id ? atualizado : p)),
         );
-        setEditando(null);
-      } else {
+        setEditando(null); // Limpa o formulário após salvar
+      } catch (err) {
+        alert("Erro ao atualizar produto: " + err.message);
+      }
+    } else {
+      // POST real para criar produto
+      try {
+        const res = await fetch(`${API_URL}/api/produtos`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(produto),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const novo = await res.json();
         setProdutos([
           ...produtos,
           {
-            ...atualizado,
+            ...novo,
             categorias: categorias.filter((c) =>
-              (produto.categorias || []).includes(c._id),
+              produto.categorias.includes(c._id),
             ),
           },
         ]);
+      } catch (err) {
+        alert("Erro ao criar produto: " + err.message);
       }
-    } catch (err) {
-      alert("Erro ao salvar produto: " + err.message);
     }
   }
 
@@ -190,13 +176,16 @@ export default function Produtos() {
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={getImageUrl(p.imagens?.[0] || null)}
+                        src={getImageUrl(
+                          p.imagens?.[0] || "/motopecas/sem-imagem.png",
+                        )}
                         alt={p.nome}
                         className="w-12 h-12 object-cover rounded border"
-                        onError={(e) => {
-                          // Usa o PLACEHOLDER SVG inline
-                          e.target.src = PLACEHOLDER;
-                        }}
+                        onError={(e) =>
+                          (e.target.src = getImageUrl(
+                            "/motopecas/sem-imagem.png",
+                          ))
+                        }
                       />
                       <div>
                         <p className="font-medium text-gray-800">{p.nome}</p>

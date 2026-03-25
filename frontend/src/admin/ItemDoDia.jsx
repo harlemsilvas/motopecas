@@ -3,7 +3,7 @@ import ProdutoForm from "./ProdutoForm";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
-import { getImageUrl } from "../utils/imageUtils";
+import { getImageUrl, PLACEHOLDER } from "../utils/imageUtils";
 
 export default function ItemDoDia() {
   const [produtos, setProdutos] = useState([]);
@@ -19,7 +19,7 @@ export default function ItemDoDia() {
         const res = await fetch(`${API_URL}/api/produtos?itemDoDia=true`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setProdutos(data);
+        setProdutos(data.produtos || []);
         setErro("");
       } catch (err) {
         setErro("Falha ao carregar itens do dia: " + err.message);
@@ -87,16 +87,13 @@ export default function ItemDoDia() {
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={getImageUrl(
-                          p.imagens?.[0] || "/motopecas/sem-imagem.png",
-                        )}
+                        src={getImageUrl(p.imagens?.[0] || null)}
                         alt={p.nome}
                         className="w-12 h-12 object-cover rounded border"
-                        onError={(e) =>
-                          (e.target.src = getImageUrl(
-                            "/motopecas/sem-imagem.png",
-                          ))
-                        }
+                        onError={(e) => {
+                          // Usa o PLACEHOLDER SVG inline
+                          e.target.src = PLACEHOLDER;
+                        }}
                       />
                       <div>
                         <p className="font-medium text-gray-800">{p.nome}</p>
