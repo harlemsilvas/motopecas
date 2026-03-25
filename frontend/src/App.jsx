@@ -1,3 +1,4 @@
+// App.jsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
@@ -13,9 +14,18 @@ import AdminLayout from "./admin/index";
 import ImportacaoProdutos from "./admin/importacao/ImportacaoProdutos";
 
 function RequireAuth({ children }) {
-  const token = localStorage.getItem("admin_token");
-  // O basename já cuida do "/motopecas", então use o path relativo ao app
-  return token ? children : <Navigate to="/admin/login" replace />;
+  const [isAuth, setIsAuth] = React.useState(null);
+  React.useEffect(() => {
+    fetch("/api/auth/me", {
+      credentials: "include",
+    })
+      .then((res) => setIsAuth(res.ok))
+      .catch(() => setIsAuth(false));
+  }, []);
+
+  if (isAuth === null) return <div>Carregando...</div>;
+
+  return isAuth ? children : <Navigate to="/admin/login" replace />;
 }
 
 function App() {

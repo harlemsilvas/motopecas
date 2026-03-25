@@ -1,4 +1,3 @@
-// backend/server.js
 require("dotenv").config({ path: __dirname + "/.env" });
 
 const express = require("express");
@@ -8,30 +7,29 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const multer = require("multer");
+const rateLimit = require("express-rate-limit");
+const cookieParser = require("cookie-parser");
 const fs = require("fs");
-const app = express();
 
+const app = express();
 const produtosRoutes = require("./routes/produtos");
 
-// Porta
 const PORT = process.env.PORT || 5000;
 
-// ================== CRIAR PASTA UPLOADS SE NÃO EXISTIR ==================
+// ================== CRIAR PASTA UPLOADS ==================
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log("✅ Pasta /uploads criada");
-} else {
-  console.log("✅ Pasta /uploads já existe");
 }
 
-// ================== SEGURANÇA E MIDDLEWARE ==================
+// ================== SEGURANÇA ==================
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "blob:"],
@@ -39,229 +37,114 @@ app.use(
         objectSrc: ["'none'"],
       },
     },
-    crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
-app.use(cors());
+
+// 🔒 RATE LIMIT
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Muitas tentativas. Tente novamente mais tarde." },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  message: { error: "Limite de cadastros atingido." },
+});
+
+// 🔥 APLICAÇÃO DO RATE LIMIT
+app.use("/api/auth/login", loginLimiter);
+app.use("/api/auth/register", registerLimiter);
+
+// 🔒 CORS
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// ================== SERVIÇO DE ARQUIVOS ESTÁTICOS ==================
+// ================== STATIC ==================
 app.use("/uploads", express.static(uploadsDir));
-console.log("✅ Arquivos estáticos: /uploads disponíveis");
-
 app.use(express.static(path.join(__dirname, "public")));
-// Protege o painel admin com JWT
+
+// ================== AUTH ==================
 const authMiddleware = require("./auth/authMiddleware");
+
 app.use(
   "/admin",
   authMiddleware,
   express.static(path.join(__dirname, "admin")),
 );
 
-// ================== CONFIGURAÇÃO DO MULTER ==================
+// ================== MULTER ==================
 const allowedExts = [".jpg", ".jpeg", ".png", ".webp"];
 
-// Multer genérico (fallback)
+function isValidImage(file) {
+  return file.mimetype.startsWith("image/");
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
+  destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (!allowedExts.includes(ext)) {
-      return cb(new Error("Extensão inválida"), null);
+    if (!allowedExts.includes(ext) || !isValidImage(file)) {
+      return cb(new Error("Arquivo inválido"), null);
     }
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    cb(null, uniqueName);
+    cb(null, `${Date.now()}-${Math.random()}${ext}`);
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowedExts.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Apenas imagens .jpg, .png e .webp são permitidas."));
-    }
-  },
+  limits: { fileSize: 2 * 1024 * 1024 }, // 🔥 reduzido
 });
 
-// Multer com subpastas dinâmicas (/uploads/:tipo/:id)
-const storageSub = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const tipo = req.params.tipo;
-    const id = req.params.id;
-    if (!tipo || !id || !/^[a-f0-9]{24}$/i.test(id)) {
-      return cb(new Error("Parâmetros inválidos"), null);
-    }
-    if (!["produtos", "categorias"].includes(tipo)) {
-      return cb(new Error("Tipo inválido"), null);
-    }
-    const dest = path.join(uploadsDir, tipo, id);
-    fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (!allowedExts.includes(ext)) {
-      return cb(new Error("Extensão inválida"), null);
-    }
-    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    cb(null, uniqueName);
-  },
-});
-
-const uploadSub = multer({
-  storage: storageSub,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowedExts.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Apenas imagens .jpg, .png e .webp são permitidas."));
-    }
-  },
-});
-
-// ================== ROTAS DE UPLOAD ==================
-
-// Upload genérico (fallback)
+// ================== UPLOAD ==================
 app.post("/api/upload", upload.single("imagem"), (req, res) => {
   if (!req.file)
     return res.status(400).json({ error: "Nenhuma imagem enviada" });
+
   res.json({ url: `/uploads/${req.file.filename}` });
 });
 
-app.post("/api/upload-multiple", upload.array("imagens", 10), (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: "Nenhuma imagem enviada" });
-  }
-  const urls = req.files.map((file) => `/uploads/${file.filename}`);
-  console.log("✅ Upload múltiplo bem-sucedido:", urls);
-  res.json({ urls });
-});
-
-// Upload com subpasta: /api/upload/:tipo/:id (single)
-app.post("/api/upload/:tipo/:id", uploadSub.single("imagem"), (req, res) => {
-  if (!req.file)
-    return res.status(400).json({ error: "Nenhuma imagem enviada" });
-  const url = `/uploads/${req.params.tipo}/${req.params.id}/${req.file.filename}`;
-  console.log("✅ Upload em subpasta:", url);
-  res.json({ url });
-});
-
-// Upload múltiplo com subpasta: /api/upload-multiple/:tipo/:id
-app.post(
-  "/api/upload-multiple/:tipo/:id",
-  uploadSub.array("imagens", 10),
-  (req, res) => {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "Nenhuma imagem enviada" });
-    }
-    const urls = req.files.map(
-      (file) => `/uploads/${req.params.tipo}/${req.params.id}/${file.filename}`,
-    );
-    console.log("✅ Upload múltiplo em subpasta:", urls);
-    res.json({ urls });
-  },
-);
-
-// Exclusão de arquivo de upload
-app.delete("/api/upload", (req, res) => {
-  const { file: filePath } = req.body;
-  if (!filePath || typeof filePath !== "string") {
-    return res.status(400).json({ error: "Caminho do arquivo é obrigatório" });
-  }
-  // Resolve e valida que o arquivo está dentro de uploads
-  const absolute = path.resolve(
-    uploadsDir,
-    filePath.replace(/^\/uploads\//, ""),
-  );
-  if (!absolute.startsWith(path.resolve(uploadsDir))) {
-    return res.status(403).json({ error: "Acesso negado" });
-  }
-  if (!fs.existsSync(absolute)) {
-    return res.status(404).json({ error: "Arquivo não encontrado" });
-  }
-  try {
-    fs.unlinkSync(absolute);
-    console.log("🗑️ Arquivo excluído:", absolute);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error("Erro ao excluir arquivo:", err.message);
-    res.status(500).json({ error: "Erro ao excluir arquivo" });
-  }
-});
-
-// ================== ROTAS DA API ==================
-
-// ================== ROTAS DE AUTENTICAÇÃO ==================
+// ================== ROTAS ==================
 app.use("/api/auth", require("./auth/authRoutes"));
-
-// ================== ROTAS DA API ==================
 app.use("/api/produtos", produtosRoutes);
 app.use("/api/categorias", require("./routes/categorias"));
 app.use("/api/config", require("./routes/config"));
 
-// Exemplo de proteção de rota admin (para uso futuro):
-// const authMiddleware = require('./auth/authMiddleware');
-// app.use('/admin', authMiddleware, express.static(path.join(__dirname, 'admin')));
-
-// ================== ROTA RAIZ ==================
+// ================== ROOT ==================
 app.get("/", (req, res) => {
-  res.json({
-    message: "API MotoPeças está funcionando",
-    admin: `http://localhost:${PORT}/admin`,
-    uploads: `/uploads`,
-  });
+  res.json({ message: "API rodando" });
 });
 
-// ================== TRATAMENTO DE ERROS ==================
+// ================== ERROS ==================
 app.use((err, req, res, next) => {
-  console.error("🚨 Erro no upload:", err.message);
-  if (err instanceof multer.MulterError) {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res
-        .status(400)
-        .json({ error: "Arquivo muito grande. Máximo: 5MB." });
-    }
-    return res.status(400).json({ error: `Erro no upload: ${err.message}` });
-  }
-  if (
-    err.message.includes("Extensão") ||
-    err.message.includes("Apenas imagens")
-  ) {
-    return res.status(400).json({ error: err.message });
-  }
-  next(err);
+  console.error("Erro:", err.message);
+  res.status(500).json({ error: "Erro interno" });
 });
 
-// ================== ROTA 404 ==================
+// ================== 404 ==================
 app.use((req, res) => {
   res.status(404).json({ erro: "Rota não encontrada" });
 });
 
-// ================== CONEXÃO COM O BANCO ==================
+// ================== DB ==================
 mongoose
-  .connect(process.env.DATABASE_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.DATABASE_URL)
   .then(() => {
-    console.log("✅ Conectado ao MongoDB");
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n🚀 Backend rodando na porta ${PORT}`);
-      // console.log(`🔗 Painel admin: http://localhost:${PORT}/admin`);
-      // console.log(`📁 Uploads: http://localhost:${PORT}/uploads`);
+    app.listen(PORT, () => {
+      console.log(`🚀 Rodando na porta ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ Erro ao conectar ao MongoDB:", err);
+    console.error(err);
     process.exit(1);
   });

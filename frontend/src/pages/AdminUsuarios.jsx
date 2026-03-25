@@ -1,3 +1,4 @@
+// frontend/src/pages/AdminUsuarios.jsx
 import React, { useEffect, useState, useRef } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
@@ -12,7 +13,7 @@ export default function AdminUsuarios() {
 
   const senhaRef = useRef(null);
 
-  const token = localStorage.getItem("admin_token");
+  // const token = localStorage.getItem("admin_token");
 
   // 🔒 Limpa senha ao montar
   useEffect(() => {
@@ -27,7 +28,8 @@ export default function AdminUsuarios() {
       setError("");
       try {
         const res = await fetch(`${API_URL}/api/auth/users`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include",
+          // headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (res.ok) setUsuarios(data);
@@ -55,6 +57,7 @@ export default function AdminUsuarios() {
 
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,8 +93,9 @@ export default function AdminUsuarios() {
     setSuccess("");
     try {
       const res = await fetch(`${API_URL}/api/auth/users/${username}`, {
+        credentials: "include",
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        // headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (res.ok) {

@@ -23,5 +23,6 @@ router.post("/login", authController.login);
 // Rotas protegidas para gerenciamento de usuários
 router.get("/users", authMiddleware, authController.listUsers);
 router.delete("/users/:username", authMiddleware, authController.deleteUser);
+router.get("/me", authMiddleware, authController.me);
 
 module.exports = router;
