@@ -61,7 +61,8 @@ export default function AdminUsuarios() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          credentials: "include",
+          // Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           username: novoUsuario,

@@ -25,7 +25,7 @@ export default function AdminLogin() {
       const data = await res.json();
 
       // 🔥 CORREÇÃO AQUI
-      if (res.ok && data.ok) {
+      if (res.ok) {
         navigate("/admin");
       } else {
         setError(data.error || "Erro ao logar");
