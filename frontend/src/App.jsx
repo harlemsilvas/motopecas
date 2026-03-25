@@ -19,7 +19,7 @@ function RequireAuth({ children }) {
   const API_URL = import.meta.env.VITE_API_URL || "";
 
   React.useEffect(() => {
-    fetch(`/api/auth/me`, {
+    fetch(`https://www.hrmmotos.com.br/motopecas/api/auth/me`, {
       credentials: "include",
     })
       .then((res) => setIsAuth(res.ok))
