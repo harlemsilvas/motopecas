@@ -79,8 +79,8 @@ exports.login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // true em produção
-      sameSite: "lax",
+      secure: false, // true em produção HTTPS
+      sameSite: "none", // 🔥 IMPORTANTE
     });
 
     res.json({ ok: true });
