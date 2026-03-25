@@ -102,6 +102,7 @@ export default function AdminUsuarios() {
           value={novaSenha}
           onChange={(e) => setNovaSenha(e.target.value)}
           required
+          autoComplete="new-password"
         />
         <button
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-semibold transition"
