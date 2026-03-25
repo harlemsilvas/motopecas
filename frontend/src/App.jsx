@@ -15,8 +15,10 @@ import ImportacaoProdutos from "./admin/importacao/ImportacaoProdutos";
 
 function RequireAuth({ children }) {
   const [isAuth, setIsAuth] = React.useState(null);
+
+  const API_URL = import.meta.env.VITE_API_URL || "";
+
   React.useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || "";
     fetch(`${API_URL}/api/auth/me`, {
       credentials: "include",
     })
