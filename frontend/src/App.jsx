@@ -17,6 +17,7 @@ function RequireAuth({ children }) {
   const [isAuth, setIsAuth] = React.useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "";
+  console.log("🚀 ~ RequireAuth ~ env.VITE_API_URL:", env.VITE_API_URL);
 
   React.useEffect(() => {
     fetch("https://hrmmotos.com.br/motopecas/api/auth/me", {
