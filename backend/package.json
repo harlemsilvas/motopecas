@@ -18,7 +18,8 @@
     "mongoose": "^7.0.0",
     "morgan": "^1.10.1",
     "multer": "2.1.1",
-    "nodemon": "3.1.10"
+    "nodemon": "3.1.10",
+    "require-in-the-middle": "8.0.1"
   },
   "devDependencies": {
     "autoprefixer": "10.4.21",
