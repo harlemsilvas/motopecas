@@ -1,3 +1,4 @@
+// auth/AuthController.js
 // Listar todos os usuários (exceto senha)
 exports.listUsers = async (req, res) => {
   try {

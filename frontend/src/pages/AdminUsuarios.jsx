@@ -1,16 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
   const [novoUsuario, setNovoUsuario] = useState("");
-  const [novaSenha, setNovaSenha] = useState("");
+  // const [novaSenha, setNovaSenha] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const senhaRef = useRef(null);
+
   const token = localStorage.getItem("admin_token");
+
+  // 🔒 Limpa senha ao montar
+  useEffect(() => {
+    if (senhaRef.current) {
+      senhaRef.current.value = "";
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchUsuarios() {
@@ -36,6 +45,14 @@ export default function AdminUsuarios() {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    const senha = senhaRef.current?.value || "";
+
+    if (!senha) {
+      setError("Senha obrigatória");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
@@ -43,19 +60,27 @@ export default function AdminUsuarios() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ username: novoUsuario, password: novaSenha }),
+        body: JSON.stringify({
+          username: novoUsuario,
+          password: senha,
+        }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
         setSuccess("Usuário cadastrado!");
         setUsuarios([...usuarios, { username: novoUsuario }]);
         setNovoUsuario("");
-        setNovaSenha("");
+        // setNovaSenha(""); // removido pois não existe mais
       } else {
         setError(data.error || "Erro ao cadastrar");
       }
     } catch (err) {
       setError("Erro de conexão");
+    } finally {
+      // 🔒 Sempre limpa senha
+      if (senhaRef.current) senhaRef.current.value = "";
     }
   }
 
@@ -83,9 +108,11 @@ export default function AdminUsuarios() {
   return (
     <div className="max-w-xl mx-auto mt-12 p-8 bg-white rounded-lg shadow-lg border border-gray-200">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Usuários Admin</h2>
+
       <form
         onSubmit={handleCadastrar}
         className="flex flex-col sm:flex-row gap-2 mb-6"
+        autoComplete="off"
       >
         <input
           className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 flex-1 bg-gray-50"
@@ -95,6 +122,34 @@ export default function AdminUsuarios() {
           onChange={(e) => setNovoUsuario(e.target.value)}
           required
         />
+
+        {/* 🔒 Campos fake anti-autofill */}
+        <input
+          type="text"
+          name="fake-user"
+          autoComplete="username"
+          style={{ display: "none" }}
+        />
+        <input
+          type="password"
+          name="fake-password"
+          autoComplete="current-password"
+          style={{ display: "none" }}
+        />
+
+        {/* 🔒 Campo real blindado */}
+        <input
+          ref={senhaRef}
+          type="password"
+          name="senha_admin_segura"
+          placeholder="Senha"
+          required
+          autoComplete="new-password"
+          className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 flex-1 bg-gray-50"
+        />
+
+        {/* Versão antiga (mantida comentada) */}
+        {/*
         <input
           className="border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 flex-1 bg-gray-50"
           type="password"
@@ -104,6 +159,8 @@ export default function AdminUsuarios() {
           required
           autoComplete="new-password"
         />
+        */}
+
         <button
           className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-semibold transition"
           type="submit"
@@ -111,12 +168,14 @@ export default function AdminUsuarios() {
           Cadastrar
         </button>
       </form>
+
       {error && (
         <div className="text-red-600 mb-2 text-sm font-medium">{error}</div>
       )}
       {success && (
         <div className="text-green-600 mb-2 text-sm font-medium">{success}</div>
       )}
+
       <ul className="divide-y divide-gray-200 bg-gray-50 rounded">
         {loading ? (
           <li className="py-3 text-center text-gray-500">Carregando...</li>
