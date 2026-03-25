@@ -63,6 +63,7 @@ export default function AdminLogin({ onLogin }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autocomplete="current-password"
         />
         {error && <div className="text-red-600 mb-2 text-sm">{error}</div>}
         <button
