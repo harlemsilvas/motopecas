@@ -80,7 +80,7 @@ exports.login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: true, // true em produção HTTPS
-      sameSite: "none", // 🔥 IMPORTANTE
+      sameSite: "lax", // 🔥 IMPORTANTE
       path: "/", // 🔥 ADICIONE ISSO
     });
 
