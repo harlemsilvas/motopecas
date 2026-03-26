@@ -267,13 +267,17 @@ exports.atualizarProduto = async (req, res) => {
 
 exports.removerProduto = async (req, res) => {
   try {
-    const produto = await Produto.findByIdAndDelete(req.params.id);
+    const produto = await Produto.findByIdAndUpdate(
+      req.params.id,
+      { ativo: false, deactivatedAt: new Date() },
+      { new: true },
+    );
     if (!produto)
       return res.status(404).json({ erro: "Produto não encontrado" });
-    res.json({ message: "Produto excluído" });
+    res.json({ message: "Produto desativado", produto });
   } catch (err) {
     res
       .status(500)
-      .json({ erro: "Erro ao excluir produto", detalhes: err.message });
+      .json({ erro: "Erro ao desativar produto", detalhes: err.message });
   }
 };

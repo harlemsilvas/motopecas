@@ -10,6 +10,7 @@ export default function ItemDoDia() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
+  const [filtroAtivo, setFiltroAtivo] = useState("ativos");
   const [editando, setEditando] = useState(null);
 
   useEffect(() => {
@@ -58,15 +59,34 @@ export default function ItemDoDia() {
     }
   }
 
+  // Filtro de produtos
+  const produtosFiltrados = produtos.filter((p) => {
+    if (filtroAtivo === "ativos") return p.ativo !== false;
+    if (filtroAtivo === "inativos") return p.ativo === false;
+    return true;
+  });
+
   return (
     <div className="max-w-4xl mx-auto mt-8">
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
+        <div className="mb-4 flex items-center gap-2">
+          <label className="font-medium text-black-600">Filtrar:</label>
+          <select
+            value={filtroAtivo}
+            onChange={(e) => setFiltroAtivo(e.target.value)}
+            className="border p-1 rounded text-black-600"
+          >
+            <option value="ativos">Ativos</option>
+            <option value="inativos">Inativos</option>
+            <option value="todos">Todos</option>
+          </select>
+        </div>
         <h2 className="text-lg font-bold mb-4 text-gray-950">Itens do Dia</h2>
         {loading ? (
           <div>Carregando itens do dia...</div>
         ) : erro ? (
           <div className="text-red-600">{erro}</div>
-        ) : produtos.length === 0 ? (
+        ) : produtosFiltrados.length === 0 ? (
           <div className="text-gray-400 py-8 text-center">
             Nenhum item do dia definido.
           </div>
@@ -82,7 +102,7 @@ export default function ItemDoDia() {
               </tr>
             </thead>
             <tbody>
-              {produtos.map((p) => (
+              {produtosFiltrados.map((p) => (
                 <tr key={p._id} className="hover:bg-gray-50 transition">
                   <td className="py-3 pr-3">
                     <div className="flex items-center gap-3">

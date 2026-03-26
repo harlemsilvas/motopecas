@@ -77,11 +77,13 @@ exports.login = async (req, res) => {
       { expiresIn: "2h" },
     );
 
+    // Ajusta flags do cookie conforme ambiente
+    const isDev = process.env.DEV === "true";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // true em produção HTTPS
-      sameSite: "lax", // 🔥 IMPORTANTE
-      path: "/", // 🔥 ADICIONE ISSO
+      secure: !isDev, // true em produção (DEV=false), false em dev
+      sameSite: isDev ? "Lax" : "None", // Lax em dev, None em prod
+      path: "/",
     });
 
     res.json({ ok: true });

@@ -60,7 +60,7 @@ app.use("/api/auth/register", registerLimiter);
 // 🔒 CORS
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://hrmmotos.com.br"],
+    origin: ["http://localhost:5173"],
     credentials: true,
   }),
 );
@@ -114,6 +114,35 @@ app.post("/api/upload", upload.single("imagem"), (req, res) => {
   res.json({ url: `/uploads/${req.file.filename}` });
 });
 
+// ================== UPLOAD MÚLTIPLO DE IMAGENS DE PRODUTOS ==================
+app.post(
+  "/api/upload-multiple/produtos/:id",
+  multer({
+    storage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB por imagem
+  }).array("imagens", 10), // até 10 imagens
+  (req, res) => {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "Nenhuma imagem enviada" });
+    }
+    // Salva as imagens na pasta correta do produto
+    const produtoId = req.params.id;
+    const fs = require("fs");
+    const path = require("path");
+    const destDir = path.join(uploadsDir, "produtos", produtoId);
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+    const urls = [];
+    req.files.forEach((file) => {
+      const destPath = path.join(destDir, file.filename);
+      fs.renameSync(file.path, destPath);
+      urls.push(`/uploads/produtos/${produtoId}/${file.filename}`);
+    });
+
+    res.json({ urls });
+  },
+);
+
 // ================== ROTAS ==================
 app.use("/api/auth", require("./auth/authRoutes"));
 app.use("/api/produtos", produtosRoutes);
@@ -138,7 +167,11 @@ app.use((req, res) => {
 
 // ================== DB ==================
 mongoose
-  .connect(process.env.DATABASE_URL)
+  .connect(
+    process.env.DEV === "true"
+      ? process.env.DATABASE_URL_DEV
+      : process.env.DATABASE_URL,
+  )
   .then(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Rodando na porta ${PORT}`);

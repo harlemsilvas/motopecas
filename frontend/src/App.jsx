@@ -17,10 +17,10 @@ function RequireAuth({ children }) {
   const [isAuth, setIsAuth] = React.useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL || "";
-  console.log("🚀 ~ RequireAuth ~ env.VITE_API_URL:", env.VITE_API_URL);
+  console.log("🚀 ~ RequireAuth ~ env.VITE_API_URL:", API_URL);
 
   React.useEffect(() => {
-    fetch("https://hrmmotos.com.br/motopecas/api/auth/me", {
+    fetch(`${API_URL}/api/auth/me`, {
       credentials: "include",
     })
       .then((res) => setIsAuth(res.ok))
@@ -34,7 +34,10 @@ function RequireAuth({ children }) {
 
 function App() {
   return (
-    <BrowserRouter basename="/motopecas">
+    <BrowserRouter
+      basename="/motopecas"
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <Routes>
         {/* Rota da Loja (http://.../motopecas/) */}
         <Route

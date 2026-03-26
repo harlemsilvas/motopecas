@@ -9,6 +9,7 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL || "";
+  console.log("🚀 ~ AdminLogin ~ env.VITE_API_URL:", API_URL);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +25,6 @@ export default function AdminLogin() {
 
       const data = await res.json();
 
-      // 🔥 CORREÇÃO AQUI
       if (res.ok) {
         navigate("/admin");
       } else {
@@ -34,4 +34,39 @@ export default function AdminLogin() {
       setError("Erro de conexão");
     }
   };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded shadow-md w-80 flex flex-col gap-4"
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center">Login Admin</h2>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Usuário"
+          className="border rounded px-3 py-2"
+          autoFocus
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Senha"
+          className="border rounded px-3 py-2"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+        >
+          Entrar
+        </button>
+        {error && (
+          <div className="text-red-600 text-sm text-center">{error}</div>
+        )}
+      </form>
+    </div>
+  );
 }

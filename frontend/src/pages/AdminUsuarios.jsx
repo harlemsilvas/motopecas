@@ -41,7 +41,7 @@ export default function AdminUsuarios() {
       }
     }
     fetchUsuarios();
-  }, [token]);
+  }, []);
 
   async function handleCadastrar(e) {
     e.preventDefault();
