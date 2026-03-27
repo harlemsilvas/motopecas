@@ -53,8 +53,15 @@ export default function ProdutoForm({
     e.preventDefault();
     onSubmit({
       nome,
-      preco,
-      precoPromocional,
+      // Remove caracteres não numéricos e limita a 2 casas decimais
+      preco: preco
+        .replace(/[^\d,\.]/g, "")
+        .replace(/(,|\.){2,}/g, ".")
+        .replace(/(\d+)([,.])(\d{2})\d*/, "$1$2$3"),
+      precoPromocional: precoPromocional
+        .replace(/[^\d,\.]/g, "")
+        .replace(/(,|\.){2,}/g, ".")
+        .replace(/(\d+)([,.])(\d{2})\d*/, "$1$2$3"),
       descricao,
       categorias: cats,
       itemDoDia,
@@ -119,7 +126,11 @@ export default function ProdutoForm({
           <input
             className="w-full border p-2 rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={preco}
-            onChange={(e) => setPreco(e.target.value)}
+            onChange={(e) => {
+              // Aceita apenas números, vírgula e ponto
+              const val = e.target.value.replace(/[^\d,\.]/g, "");
+              setPreco(val);
+            }}
             required
             placeholder="R$ 299,90"
             autoComplete="off"
@@ -132,7 +143,11 @@ export default function ProdutoForm({
           <input
             className="w-full border p-2 rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
             value={precoPromocional}
-            onChange={(e) => setPrecoPromocional(e.target.value)}
+            onChange={(e) => {
+              // Aceita apenas números, vírgula e ponto
+              const val = e.target.value.replace(/[^\d,\.]/g, "");
+              setPrecoPromocional(val);
+            }}
             placeholder="R$ 249,90"
             autoComplete="off"
           />

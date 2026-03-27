@@ -108,13 +108,27 @@ export default function Produtos() {
 
     // 3. Atualiza o produto com as URLs das imagens
     try {
+      // Corrige campos de preço para Number e troca vírgula por ponto
+      const parsePreco = (val) => {
+        if (typeof val === "string") {
+          const limpo = val.replace(/[^\d,.]/g, "").replace(",", ".");
+          return limpo ? Number(limpo) : undefined;
+        }
+        return typeof val === "number" ? val : undefined;
+      };
+      const produtoCorrigido = {
+        ...produto,
+        preco: parsePreco(produto.preco),
+        precoPromocional: parsePreco(produto.precoPromocional),
+        imagens: imagensUrls,
+      };
       const idParaAtualizar = editando ? editando._id : produtoId;
       const res = await fetch(`${API_URL}/api/produtos/${idParaAtualizar}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...produto, imagens: imagensUrls }),
+        body: JSON.stringify(produtoCorrigido),
       });
       let atualizado;
       if (!res.ok) {
