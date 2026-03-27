@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from "react";
 import ProdutoForm from "./ProdutoForm";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
-
 import { getImageUrl, PLACEHOLDER } from "../utils/imageUtils";
 
 export default function Produtos() {
@@ -11,17 +10,38 @@ export default function Produtos() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
   const [editando, setEditando] = useState(null);
-  const [filtroAtivo, setFiltroAtivo] = useState("ativos");
+  const [busca, setBusca] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [showSituacao, setShowSituacao] = useState(false);
+  const [situacao, setSituacao] = useState("ativos");
+  const [ordem, setOrdem] = useState("asc");
   const formRef = useRef(null);
 
   useEffect(() => {
     async function carregarProdutos() {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/api/produtos`);
+        const params = [];
+        if (busca) params.push(`nome=${encodeURIComponent(busca)}`);
+        // Situação
+        if (situacao === "ativos") params.push("ativo=true");
+        else if (situacao === "inativos") params.push("ativo=false");
+        else if (situacao === "excluidos") params.push("excluido=true");
+        // Ordem
+        params.push(`ordem=${ordem}`);
+        params.push(`page=${page}`);
+        params.push(`limit=${limit}`);
+        const query = params.length ? `?${params.join("&")}` : "";
+        const res = await fetch(`${API_URL}/api/produtos${query}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setProdutos(data.produtos || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+        setLimit(data.limit || 10);
         setErro("");
       } catch (err) {
         setErro("Falha ao carregar produtos: " + err.message);
@@ -39,7 +59,8 @@ export default function Produtos() {
     }
     carregarProdutos();
     carregarCategorias();
-  }, []);
+    // eslint-disable-next-line
+  }, [busca, situacao, ordem, page, limit]);
 
   async function handleSubmit(produto) {
     let imagensUrls = [];
@@ -180,13 +201,6 @@ export default function Produtos() {
     }
   }
 
-  // Filtro de produtos
-  const produtosFiltrados = produtos.filter((p) => {
-    if (filtroAtivo === "ativos") return p.ativo !== false;
-    if (filtroAtivo === "inativos") return p.ativo === false;
-    return true;
-  });
-
   return (
     <div className="max-w-6xl mx-auto mt-8">
       <div ref={formRef} />
@@ -196,19 +210,116 @@ export default function Produtos() {
         produto={editando}
         onCancel={() => setEditando(null)}
       />
-      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <div className="mb-4 flex items-center gap-2">
-          <label className="font-medium text-black-600">Filtrar:</label>
-          <select
-            value={filtroAtivo}
-            onChange={(e) => setFiltroAtivo(e.target.value)}
-            className="border p-1 rounded text-black-600"
+      {/* Barra de busca e filtros, modelo visual novo */}
+      <div className="bg-white rounded-lg shadow p-6 border border-gray-200 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex-1 flex items-center gap-2">
+          <input
+            type="text"
+            className="border p-2 rounded w-full md:w-96 text-gray-900"
+            placeholder="Pesquise pelo produto"
+            value={busca}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setPage(1);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") setPage(1);
+            }}
+          />
+          <button
+            className="p-2 bg-gray-100 rounded hover:bg-gray-200"
+            onClick={() => setPage(1)}
+            title="Buscar"
           >
-            <option value="ativos">Ativos</option>
-            <option value="inativos">Inativos</option>
-            <option value="todos">Todos</option>
-          </select>
+            <span role="img" aria-label="Buscar">
+              🔍
+            </span>
+          </button>
         </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            className={`px-3 py-1 rounded-full border ${showSituacao ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+            onClick={() => setShowSituacao((v) => !v)}
+          >
+            produtos ativos
+          </button>
+          <button
+            className="px-3 py-1 rounded-full border bg-gray-100 text-gray-800"
+            onClick={() => {
+              setBusca("");
+              setSituacao("ativos");
+              setPage(1);
+              setShowSituacao(false);
+            }}
+          >
+            limpar filtros
+          </button>
+          {/* Botão de ordenação */}
+          <button
+            className="px-3 py-1 rounded-full border bg-gray-100 text-gray-800 flex items-center gap-1"
+            onClick={() => setOrdem(ordem === "asc" ? "desc" : "asc")}
+            title="Ordenar por nome"
+          >
+            <span style={{ fontSize: "1.1em" }}>
+              {ordem === "asc" ? "↓" : "↑"}
+            </span>{" "}
+            nome
+          </button>
+        </div>
+        {/* Frame/Div de Situação */}
+        {showSituacao && (
+          <div className="bg-gray-50 border border-gray-200 rounded p-4 mb-4 max-w-xl mx-auto">
+            <div className="font-medium text-gray-700 mb-2">Situação</div>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                className={`px-3 py-1 rounded-full border ${situacao === "todos" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+                onClick={() => {
+                  setSituacao("todos");
+                  setPage(1);
+                  setShowSituacao(false);
+                }}
+              >
+                sem filtro
+              </button>
+              <button
+                className={`px-3 py-1 rounded-full border ${situacao === "ativos" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+                onClick={() => {
+                  setSituacao("ativos");
+                  setPage(1);
+                  setShowSituacao(false);
+                }}
+              >
+                ativos
+              </button>
+              <button
+                className={`px-3 py-1 rounded-full border ${situacao === "inativos" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+                onClick={() => {
+                  setSituacao("inativos");
+                  setPage(1);
+                  setShowSituacao(false);
+                }}
+              >
+                inativos
+              </button>
+              <button
+                className={`px-3 py-1 rounded-full border ${situacao === "excluidos" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+                onClick={() => {
+                  setSituacao("excluidos");
+                  setPage(1);
+                  setShowSituacao(false);
+                }}
+              >
+                excluídos
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500 text-sm">{total}</span>
+          <span className="text-gray-400 text-xs">quantidade</span>
+        </div>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
         <h2 className="text-lg font-bold mb-4 text-gray-800">
           Produtos Cadastrados
         </h2>
@@ -216,91 +327,122 @@ export default function Produtos() {
           <div>Carregando produtos...</div>
         ) : erro ? (
           <div className="text-red-600">{erro}</div>
-        ) : produtosFiltrados.length === 0 ? (
+        ) : produtos.length === 0 ? (
           <div className="text-gray-400 py-8 text-center">
             Nenhum produto cadastrado.
           </div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th className="text-left text-md font-bold mb-4 text-gray-800">
-                  Produto
-                </th>
-                <th className="text-left text-md font-bold mb-4 text-gray-800">
-                  Preço
-                </th>
-                <th className="text-left text-md font-bold mb-4 text-gray-800">
-                  Item do Dia
-                </th>
-                <th className="text-md font-bold mb-4 text-gray-800">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {produtosFiltrados.map((p) => (
-                <tr key={p._id} className="hover:bg-gray-50 transition">
-                  <td className="py-3 pr-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getImageUrl(p.imagens?.[0] || null)}
-                        alt={p.nome}
-                        className="w-12 h-12 object-cover rounded border"
-                        onError={(e) => {
-                          // Usa o PLACEHOLDER SVG inline
-                          e.target.src = PLACEHOLDER;
-                        }}
-                      />
-                      <div>
-                        <p className="font-medium text-gray-800">{p.nome}</p>
-                        <p className="text-xs text-gray-400">
-                          {(p.categorias || [])
-                            .map((c) => c.nome || "—")
-                            .join(", ") || "Sem categoria"}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 text-sm text-gray-700">
-                    {p.precoPromocional ? (
-                      <>
-                        <span className="line-through text-gray-400 mr-1">
-                          R$ {Number(p.preco).toFixed(2)}
-                        </span>
-                        <span className="text-green-600 font-semibold">
-                          R$ {Number(p.precoPromocional).toFixed(2)}
-                        </span>
-                      </>
-                    ) : (
-                      `R$ ${Number(p.preco).toFixed(2)}`
-                    )}
-                  </td>
-                  <td className="py-3 text-sm">
-                    {p.itemDoDia ? (
-                      <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-medium">
-                        ★ Sim
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">Não</span>
-                    )}
-                  </td>
-                  <td className="py-3 text-sm">
-                    <button
-                      className="text-blue-600 hover:text-blue-800 font-medium mr-3 text-sm"
-                      onClick={() => handleEditar(p)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800 font-medium text-sm"
-                      onClick={() => handleExcluir(p._id)}
-                    >
-                      Excluir
-                    </button>
-                  </td>
+          <>
+            <table>
+              <thead>
+                <tr>
+                  <th className="text-left text-md font-bold mb-4 text-gray-800">
+                    Produto
+                  </th>
+                  <th className="text-left text-md font-bold mb-4 text-gray-800">
+                    Preço
+                  </th>
+                  <th className="text-left text-md font-bold mb-4 text-gray-800">
+                    Item do Dia
+                  </th>
+                  <th className="text-md font-bold mb-4 text-gray-800">
+                    Ações
+                  </th>
                 </tr>
+              </thead>
+              <tbody>
+                {produtos.map((p) => (
+                  <tr key={p._id} className="hover:bg-gray-50 transition">
+                    <td className="py-3 pr-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={getImageUrl(p.imagens?.[0] || null)}
+                          alt={p.nome}
+                          className="w-12 h-12 object-cover rounded border"
+                          onError={(e) => {
+                            e.target.src = PLACEHOLDER;
+                          }}
+                        />
+                        <div>
+                          <p className="font-medium text-gray-800">{p.nome}</p>
+                          <p className="text-xs text-gray-400">
+                            {(p.categorias || [])
+                              .map((c) => c.nome || "—")
+                              .join(", ") || "Sem categoria"}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 text-sm text-gray-700">
+                      {p.precoPromocional ? (
+                        <>
+                          <span className="line-through text-gray-400 mr-1">
+                            R$ {Number(p.preco).toFixed(2)}
+                          </span>
+                          <span className="text-green-600 font-semibold">
+                            R$ {Number(p.precoPromocional).toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        `R$ ${Number(p.preco).toFixed(2)}`
+                      )}
+                    </td>
+                    <td className="py-3 text-sm">
+                      {p.itemDoDia ? (
+                        <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                          ★ Sim
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Não</span>
+                      )}
+                    </td>
+                    <td className="py-3 text-sm">
+                      <button
+                        className="text-blue-600 hover:text-blue-800 font-medium mr-3 text-sm"
+                        onClick={() => handleEditar(p)}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-800 font-medium text-sm"
+                        onClick={() => handleExcluir(p._id)}
+                      >
+                        Excluir
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Paginação */}
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                className="px-3 py-1 rounded border bg-gray-100 text-gray-800"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                ←
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  className={`px-3 py-1 rounded ${n === page ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-800"}`}
+                  onClick={() => setPage(n)}
+                >
+                  {n.toString().padStart(2, "0")}
+                </button>
               ))}
-            </tbody>
-          </table>
+              <button
+                className="px-3 py-1 rounded border bg-gray-100 text-gray-800"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                →
+              </button>
+              <span className="ml-4 text-gray-500 text-sm">{total}</span>
+              <span className="text-gray-400 text-xs">total</span>
+            </div>
+          </>
         )}
       </div>
     </div>

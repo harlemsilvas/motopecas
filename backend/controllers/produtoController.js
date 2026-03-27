@@ -136,7 +136,12 @@ exports.listarProdutos = async (req, res) => {
     const filtro = {};
     if (req.query.itemDoDia === "true") filtro.itemDoDia = true;
     if (req.query.ativo === "true") filtro.ativo = true;
-    if (req.query.ativo === "false") filtro.ativo = false;
+    else if (req.query.ativo === "false") filtro.ativo = false;
+    // Filtro para excluídos: ativo false e deactivatedAt preenchido
+    if (req.query.excluido === "true") {
+      filtro.ativo = false;
+      filtro.deactivatedAt = { $ne: null };
+    }
 
     // Ordenação
     let sort = { nome: 1 };

@@ -6,12 +6,37 @@ export default function ProdutoForm({
   produto,
   onCancel,
 }) {
+  // Função de máscara monetária (R$ 1.234,56)
+  function formatarMoeda(valor) {
+    valor = valor == null ? "" : String(valor); // Garante string
+    if (!valor) return "";
+    // Remove tudo que não for dígito
+    let v = valor.replace(/\D/g, "");
+    // Remove zeros à esquerda
+    v = v.replace(/^0+(?!$)/, "");
+    // Formata para centavos
+    if (v.length <= 2) return v.replace(/^0+/, "") ? v.replace(/^0+/, "") : "0";
+    v = v.padStart(3, "0");
+    let reais = v.slice(0, v.length - 2);
+    let centavos = v.slice(-2);
+    // Adiciona pontos de milhar
+    reais = reais.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${reais},${centavos}`;
+  }
   // Para resetar o input file
   const [fileInputKey, setFileInputKey] = useState(0);
   const [nome, setNome] = useState(produto?.nome || "");
-  const [preco, setPreco] = useState(produto?.preco || "");
+  // Função para converter número (ex: 149) para string de centavos ("14900")
+  function numeroParaCentavosStr(valor) {
+    if (valor == null || valor === "") return "";
+    if (typeof valor === "string") return valor.replace(/\D/g, "");
+    // valor é number: 149 -> "14900"
+    return String(Math.round(Number(valor) * 100));
+  }
+
+  const [preco, setPreco] = useState(numeroParaCentavosStr(produto?.preco));
   const [precoPromocional, setPrecoPromocional] = useState(
-    produto?.precoPromocional || "",
+    numeroParaCentavosStr(produto?.precoPromocional),
   );
   const [descricao, setDescricao] = useState(produto?.descricao || "");
   const [cats, setCats] = useState(
@@ -27,12 +52,12 @@ export default function ProdutoForm({
   useEffect(() => {
     if (produto) {
       setNome(produto.nome || "");
-      setPreco(produto.preco || "");
-      setPrecoPromocional(produto.precoPromocional || "");
+      setPreco(numeroParaCentavosStr(produto.preco));
+      setPrecoPromocional(numeroParaCentavosStr(produto.precoPromocional));
       setDescricao(produto.descricao || "");
       setCats(produto.categorias?.map((c) => c._id) || []);
       setItemDoDia(produto.itemDoDia || false);
-      setAtivo(produto?.ativo !== undefined ? produto.ativo : true);
+      setAtivo(produto?.ativo !== undefined ? Boolean(produto.ativo) : true);
       setImagens(produto.imagens || []);
     } else {
       // Limpa o formulário quando produto volta a ser null
@@ -53,21 +78,22 @@ export default function ProdutoForm({
     e.preventDefault();
     onSubmit({
       nome,
-      // Remove caracteres não numéricos e limita a 2 casas decimais
-      preco: preco
-        .replace(/[^\d,\.]/g, "")
-        .replace(/(,|\.){2,}/g, ".")
-        .replace(/(\d+)([,.])(\d{2})\d*/, "$1$2$3"),
-      precoPromocional: precoPromocional
-        .replace(/[^\d,\.]/g, "")
-        .replace(/(,|\.){2,}/g, ".")
-        .replace(/(\d+)([,.])(\d{2})\d*/, "$1$2$3"),
+      preco: moedaParaNumero(preco),
+      precoPromocional: moedaParaNumero(precoPromocional),
       descricao,
       categorias: cats,
       itemDoDia,
       imagens,
-      ativo,
+      ativo: Boolean(ativo),
     });
+    // Converte para número decimal (ex: "123456" => 1234.56)
+    function moedaParaNumero(str) {
+      str = str == null ? "" : String(str); // Garante string
+      if (!str) return undefined;
+      const limpo = str.replace(/\D/g, "");
+      if (!limpo) return undefined;
+      return Number(limpo) / 100;
+    }
   }
 
   // Funções para thumbs
@@ -125,11 +151,10 @@ export default function ProdutoForm({
           </label>
           <input
             className="w-full border p-2 rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={preco}
+            value={formatarMoeda(preco)}
             onChange={(e) => {
-              // Aceita apenas números, vírgula e ponto
-              const val = e.target.value.replace(/[^\d,\.]/g, "");
-              setPreco(val);
+              // Só dígitos, máscara automática
+              setPreco(e.target.value.replace(/\D/g, ""));
             }}
             required
             placeholder="R$ 299,90"
@@ -142,11 +167,9 @@ export default function ProdutoForm({
           </label>
           <input
             className="w-full border p-2 rounded bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={precoPromocional}
+            value={formatarMoeda(precoPromocional)}
             onChange={(e) => {
-              // Aceita apenas números, vírgula e ponto
-              const val = e.target.value.replace(/[^\d,\.]/g, "");
-              setPrecoPromocional(val);
+              setPrecoPromocional(e.target.value.replace(/\D/g, ""));
             }}
             placeholder="R$ 249,90"
             autoComplete="off"
