@@ -234,6 +234,8 @@ exports.criarProduto = async (req, res) => {
 };
 
 exports.atualizarProduto = async (req, res) => {
+  // Loga o corpo recebido para debug
+  console.log("PUT /api/produtos/:id req.body:", JSON.stringify(req.body));
   try {
     // Buscar produto atual para comparar valor de ativo
     const produtoAtual = await Produto.findById(req.params.id);
