@@ -70,16 +70,16 @@ export default function ItemDoDia() {
     <div className="max-w-4xl mx-auto mt-8">
       <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
         <div className="mb-4 flex items-center gap-2">
-          <label className="font-medium text-black-600">Filtrar:</label>
+          {/* <label className="font-medium bg- text-gray-600">Filtrar:</label>
           <select
             value={filtroAtivo}
             onChange={(e) => setFiltroAtivo(e.target.value)}
-            className="border p-1 rounded text-black-600"
+            className="border p-1 rounded text-gray-600"
           >
             <option value="ativos">Ativos</option>
             <option value="inativos">Inativos</option>
             <option value="todos">Todos</option>
-          </select>
+          </select> */}
         </div>
         <h2 className="text-lg font-bold mb-4 text-gray-950">Itens do Dia</h2>
         {loading ? (

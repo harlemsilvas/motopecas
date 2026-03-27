@@ -41,13 +41,15 @@ export default function AdminLogin() {
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md w-80 flex flex-col gap-4"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Login Admin</h2>
+        <h2 className="text-2xl font-bold mb-4 text-gray-600 text-center">
+          Login Admin
+        </h2>
         <input
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Usuário"
-          className="border rounded px-3 py-2"
+          className="border rounded px-3 py-2 text-gray-600"
           autoFocus
         />
         <input
