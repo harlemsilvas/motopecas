@@ -116,8 +116,20 @@ export default function Produtos() {
         },
         body: JSON.stringify({ ...produto, imagens: imagensUrls }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const atualizado = await res.json();
+      let atualizado;
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const errJson = await res.json();
+          if (errJson && (errJson.erro || errJson.detalhes)) {
+            msg += `\n${errJson.erro || ""}`;
+            if (errJson.detalhes) msg += `\n${errJson.detalhes}`;
+          }
+        } catch {}
+        alert("Erro ao salvar produto: " + msg);
+        return;
+      }
+      atualizado = await res.json();
       if (editando) {
         setProdutos(
           produtos.map((p) => (p._id === editando._id ? atualizado : p)),
